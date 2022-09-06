@@ -1,12 +1,21 @@
 #![no_std]
 #![no_main]
 
+
+extern crate arduino_hal;
+
+mod analog_stick;
+
+use arduino_hal::hal::port::{PC2, PC1, PC0};
+
 use core::panic::PanicInfo;
 
 #[panic_handler]
 fn panic(_info: &PanicInfo) -> ! {
     loop {}
 }
+
+use crate::analog_stick::AnalogStick;
 
 #[arduino_hal::entry]
 fn main() -> ! {
@@ -34,8 +43,18 @@ fn main() -> ! {
         const FRAME_MOVE_THRESHOLD: i32 = 25;
         let mut frame_counter = 0;
 
-        let x_pin = pins.a0.into_analog_input();
+        let peripherals = arduino_hal::Peripherals::take().unwrap();
+        let mut adc = arduino_hal::Adc::new(peripherals.ADC, Default::default());
 
+        let x_pin = pins.a0.into_analog_input(&mut adc);
+        let y_pin = pins.a1.into_analog_input(&mut adc);
+        let s_pin = pins.a2.into_analog_input(&mut adc);
+
+        let mut x_val: i32 = 0;
+        let mut y_val: i32 = 0;
+        let mut s_val: i32 = 0;
+
+        let analog: AnalogStick<PC0, PC1, PC2> = AnalogStick::new(x_pin, y_pin, s_pin);
 
         loop {
 
