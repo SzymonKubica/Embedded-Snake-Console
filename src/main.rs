@@ -5,6 +5,7 @@
 extern crate arduino_hal;
 
 mod analog_stick;
+mod controller;
 
 use arduino_hal::hal::port::{PC2, PC1, PC0};
 
@@ -54,7 +55,7 @@ fn main() -> ! {
         let mut y_val: i32 = 0;
         let mut s_val: i32 = 0;
 
-        let analog: AnalogStick<PC0, PC1, PC2> = AnalogStick::new(x_pin, y_pin, s_pin);
+        let analog: AnalogStick = AnalogStick::new(x_pin, y_pin, s_pin);
 
         loop {
 
