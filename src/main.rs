@@ -1,13 +1,13 @@
 #![no_std]
 #![no_main]
 
-
 extern crate arduino_hal;
+extern crate arrayvec;
 
 mod analog_stick;
 mod controller;
-
-use arduino_hal::hal::port::{PC2, PC1, PC0};
+mod concurrency;
+mod game_engine;
 
 use core::panic::PanicInfo;
 
@@ -16,7 +16,12 @@ fn panic(_info: &PanicInfo) -> ! {
     loop {}
 }
 
+use arrayvec::ArrayVec;
+
 use crate::analog_stick::AnalogStick;
+use crate::concurrency::{Scheduler, SchedulerTask};
+use crate::controller::Direction;
+use crate::game_engine::GameEngine;
 
 #[arduino_hal::entry]
 fn main() -> ! {
@@ -49,17 +54,27 @@ fn main() -> ! {
 
         let x_pin = pins.a0.into_analog_input(&mut adc);
         let y_pin = pins.a1.into_analog_input(&mut adc);
-        let s_pin = pins.a2.into_analog_input(&mut adc);
+        let switch_pin = pins.a2.into_analog_input(&mut adc);
 
         let mut x_val: i32 = 0;
         let mut y_val: i32 = 0;
         let mut s_val: i32 = 0;
 
-        let analog: AnalogStick = AnalogStick::new(x_pin, y_pin, s_pin);
+        let mut engine: GameEngine = GameEngine::new();
 
-        loop {
+        let stick : AnalogStick = AnalogStick::new(
+            x_pin,
+            y_pin,
+            switch_pin,
+            &engine);
 
-        }
+
+        let mut tasks: ArrayVec<&dyn SchedulerTask, 10> = ArrayVec::new();
+        tasks.push(&engine as &dyn SchedulerTask);
+        tasks.push(&stick as &dyn SchedulerTask);
+
+        let scheduler: Scheduler = Scheduler::new(tasks, 25);
+        scheduler.run();
     }
 }
 
