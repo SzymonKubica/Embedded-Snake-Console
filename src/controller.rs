@@ -2,10 +2,14 @@ pub trait Controller {
     fn get_direction(&self) -> Direction;
 }
 
+pub trait ControllerListener {
+    fn on_input(&mut self, input: Direction) -> ();
+}
+
 pub enum Direction {
-    LEFT,
-    RIGHT,
-    UP,
-    DOWN,
-    NO_DIRECTION
+    Left,
+    Right,
+    Up,
+    Down,
+    NoDirection
 }
