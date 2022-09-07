@@ -2,7 +2,7 @@ use arrayvec::ArrayVec;
 
 
 pub trait SchedulerTask {
-    fn run_task(&self, microseconds: i32) -> ();
+    fn run_task(&self, miliseconds: u32) -> ();
 }
 
 pub struct Scheduler<'a> {

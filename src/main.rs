@@ -8,6 +8,7 @@ mod analog_stick;
 mod controller;
 mod concurrency;
 mod game_engine;
+mod time_util;
 
 use core::panic::PanicInfo;
 
@@ -60,12 +61,15 @@ fn main() -> ! {
         let mut y_val: i32 = 0;
         let mut s_val: i32 = 0;
 
-        let mut engine: GameEngine = GameEngine::new();
+
+        let engine: GameEngine = GameEngine::new();
+        let timer = embedded_hal::timer::CountDown::start(&mut engine, 100);
 
         let stick : AnalogStick = AnalogStick::new(
             x_pin,
             y_pin,
             switch_pin,
+            adc,
             &engine);
 
 

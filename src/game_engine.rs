@@ -19,7 +19,7 @@ impl ControllerListener for GameEngine {
 }
 
 impl SchedulerTask for GameEngine {
-    fn run_task(&self, microseconds: i32) -> () {
+    fn run_task(&self, microseconds: u32) -> () {
 
     }
 }
