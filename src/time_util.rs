@@ -1,11 +1,6 @@
-#![no_std]
-#![no_main]
-#![feature(abi_avr_interrupt)]
 
 use arduino_hal::prelude::*;
 use core::cell;
-use panic_halt as _;
-
 use embedded_hal::serial::Read;
 
 const PRESCALER: u32 = 1024;

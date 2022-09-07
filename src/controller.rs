@@ -1,5 +1,5 @@
 pub trait Controller {
-    fn get_direction(&self) -> Direction;
+    fn get_direction(&mut self) -> Direction;
 }
 
 pub trait ControllerListener {

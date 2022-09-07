@@ -1,7 +1,5 @@
-use arduino_hal::clock::MHz16;
-use arduino_hal::hal::Atmega;
+use arduino_hal::Adc;
 use arduino_hal::hal::port::{PC0, PC1, PC2};
-use arduino_hal::pac::ADC;
 use arduino_hal::port::{mode::Analog, Pin};
 
 use crate::concurrency::SchedulerTask;
@@ -16,7 +14,7 @@ pub struct AnalogStick<'a> {
     x_pin: Pin<Analog, PC0>,
     y_pin: Pin<Analog, PC1>,
     switch_pin: Pin<Analog, PC2>,
-    ad_converter: &mut Adc<Atmega, ADC, MHz16>,
+    ad_converter: &'a mut Adc,
     listener: &'a dyn ControllerListener,
 }
 
@@ -25,10 +23,15 @@ impl<'a> AnalogStick<'a> {
         x_pin: Pin<Analog, PC0>,
         y_pin: Pin<Analog, PC1>,
         switch_pin: Pin<Analog, PC2>,
-        ad_converter: Adc<Atmega, ADC, MHz16>,
+        ad_converter: &'a mut Adc,
         listener: &'a dyn ControllerListener) -> AnalogStick<'a> {
 
-        AnalogStick { x_pin, y_pin, switch_pin, ad_converter, listener }
+        AnalogStick {
+            x_pin,
+            y_pin,
+            switch_pin,
+            ad_converter,
+            listener }
     }
 }
 
@@ -44,7 +47,7 @@ impl<'a> Controller for AnalogStick<'a> {
      * At present the lower threshold is 200 whereas the upper one is 800.
      *
      */
-    fn get_direction(&self) -> Direction {
+    fn get_direction(&mut self) -> Direction {
         let x_value: u16 = self.x_pin.analog_read(&mut self.ad_converter);
         let y_value: u16 = self.y_pin.analog_read(&mut self.ad_converter);
 
@@ -65,7 +68,7 @@ impl<'a> Controller for AnalogStick<'a> {
 }
 
 impl<'a> SchedulerTask for AnalogStick<'a>  {
-    fn run_task(&self, miliseconds: u32) -> () {
+    fn run_task(&mut self, miliseconds: u32) -> () {
         let time_slice_start = millis();
         let mut current_time = millis();
         while current_time - time_slice_start < miliseconds {

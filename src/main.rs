@@ -1,7 +1,10 @@
 #![no_std]
 #![no_main]
+#![feature(abi_avr_interrupt)]
 
 extern crate arduino_hal;
+extern crate avr_device;
+extern crate embedded_hal;
 extern crate arrayvec;
 
 mod analog_stick;
@@ -10,19 +13,17 @@ mod concurrency;
 mod game_engine;
 mod time_util;
 
+use arrayvec::ArrayVec;
 use core::panic::PanicInfo;
+
+use crate::analog_stick::AnalogStick;
+use crate::concurrency::{Scheduler, SchedulerTask};
+use crate::game_engine::GameEngine;
 
 #[panic_handler]
 fn panic(_info: &PanicInfo) -> ! {
     loop {}
 }
-
-use arrayvec::ArrayVec;
-
-use crate::analog_stick::AnalogStick;
-use crate::concurrency::{Scheduler, SchedulerTask};
-use crate::controller::Direction;
-use crate::game_engine::GameEngine;
 
 #[arduino_hal::entry]
 fn main() -> ! {
@@ -62,15 +63,14 @@ fn main() -> ! {
         let mut s_val: i32 = 0;
 
 
-        let engine: GameEngine = GameEngine::new();
-        let timer = embedded_hal::timer::CountDown::start(&mut engine, 100);
+        let mut engine: GameEngine = GameEngine::new();
 
-        let stick : AnalogStick = AnalogStick::new(
+        let mut stick : AnalogStick = AnalogStick::new(
             x_pin,
             y_pin,
             switch_pin,
-            adc,
-            &engine);
+            &mut adc,
+            &mut engine);
 
 
         let mut tasks: ArrayVec<&dyn SchedulerTask, 10> = ArrayVec::new();

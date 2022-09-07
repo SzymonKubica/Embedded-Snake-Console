@@ -188,6 +188,7 @@ version = "0.1.0"
 dependencies = [
  "arduino-hal",
  "arrayvec",
+ "avr-device",
  "embedded-hal",
  "nb 0.1.3",
  "panic-halt",
