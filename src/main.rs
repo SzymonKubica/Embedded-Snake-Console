@@ -1,6 +1,8 @@
 #![no_std]
 #![no_main]
 #![feature(abi_avr_interrupt)]
+#![feature(trait_upcasting)]
+#![allow(incomplete_features)]
 
 extern crate arduino_hal;
 extern crate avr_device;
@@ -8,17 +10,16 @@ extern crate embedded_hal;
 extern crate arrayvec;
 
 mod analog_stick;
-mod controller;
-mod concurrency;
+mod mvc;
 mod game_engine;
+mod matrix_view;
 mod time_util;
 
-use arrayvec::ArrayVec;
 use core::panic::PanicInfo;
 
 use crate::analog_stick::AnalogStick;
-use crate::concurrency::{Scheduler, SchedulerTask};
 use crate::game_engine::GameEngine;
+use crate::matrix_view::GameView;
 
 #[panic_handler]
 fn panic(_info: &PanicInfo) -> ! {
@@ -62,9 +63,12 @@ fn main() -> ! {
         let mut y_val: i32 = 0;
         let mut s_val: i32 = 0;
 
+        let mut view: GameView = GameView {  };
 
-        let mut engine: GameEngine = GameEngine::new();
 
+        let mut engine: GameEngine = GameEngine::new(&mut view);
+
+        // Initialise the analog stick and let the scheduler set it.
         let mut stick : AnalogStick = AnalogStick::new(
             x_pin,
             y_pin,
@@ -72,13 +76,8 @@ fn main() -> ! {
             &mut adc,
             &mut engine);
 
+        stick.start_game();
 
-        let mut tasks: ArrayVec<&dyn SchedulerTask, 10> = ArrayVec::new();
-        tasks.push(&engine as &dyn SchedulerTask);
-        tasks.push(&stick as &dyn SchedulerTask);
-
-        let scheduler: Scheduler = Scheduler::new(tasks, 25);
-        scheduler.run();
     }
 }
 
