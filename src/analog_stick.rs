@@ -2,10 +2,7 @@ use arduino_hal::Adc;
 use arduino_hal::hal::port::{PC0, PC1, PC2};
 use arduino_hal::port::{mode::Analog, Pin};
 
-use crate::concurrency::SchedulerTask;
-use crate::controller::{Controller, ControllerListener};
-use crate::controller::Direction;
-use crate::time_util::millis;
+use crate::mvc::{Model, Controller, Direction, TimedRunnable};
 
 const ANALOG_LOWER_THRESHOLD: u16 = 200;
 const ANALOG_UPPER_THRESHOLD: u16 = 800;
@@ -15,7 +12,7 @@ pub struct AnalogStick<'a> {
     y_pin: Pin<Analog, PC1>,
     switch_pin: Pin<Analog, PC2>,
     ad_converter: &'a mut Adc,
-    listener: &'a dyn ControllerListener,
+    listener: &'a mut dyn Model,
 }
 
 impl<'a> AnalogStick<'a> {
@@ -24,7 +21,7 @@ impl<'a> AnalogStick<'a> {
         y_pin: Pin<Analog, PC1>,
         switch_pin: Pin<Analog, PC2>,
         ad_converter: &'a mut Adc,
-        listener: &'a dyn ControllerListener) -> AnalogStick<'a> {
+        listener: &'a mut dyn Model) -> AnalogStick<'a> {
 
         AnalogStick {
             x_pin,
@@ -33,9 +30,16 @@ impl<'a> AnalogStick<'a> {
             ad_converter,
             listener }
     }
+
+    pub fn start_game(&mut self) -> () {
+        loop {
+            self.run_for(100);
+            self.listener.run_for(100)
+        }
+    }
 }
 
-impl<'a> Controller for AnalogStick<'a> {
+impl<'a> Controller<'a> for AnalogStick<'a> {
     /*
      * The values read from the analog stick range from 0 to 1024 with some
      * minor fluctuations caused by hardware deficiencies. In the neutral
@@ -65,16 +69,8 @@ impl<'a> Controller for AnalogStick<'a> {
         }
         return Direction::NoDirection;
     }
-}
 
-impl<'a> SchedulerTask for AnalogStick<'a>  {
-    fn run_task(&mut self, miliseconds: u32) -> () {
-        let time_slice_start = millis();
-        let mut current_time = millis();
-        while current_time - time_slice_start < miliseconds {
-            self.listener.on_input(self.get_direction());
-            current_time = millis();
-        }
+    fn notify_listener(&mut self, input: Direction) -> () {
+        self.listener.on_input(input);
     }
-
 }
