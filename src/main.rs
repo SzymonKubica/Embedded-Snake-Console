@@ -76,8 +76,6 @@ fn main() -> ! {
             &mut adc,
             &mut engine);
 
-        stick.start_game();
-
     }
 }
 

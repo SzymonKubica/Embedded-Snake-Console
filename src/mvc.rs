@@ -9,7 +9,6 @@ pub trait TimedRunnable : Task {
 }
 
 pub trait Model: TimedRunnable {
-    fn set_view(&mut self, view: &mut dyn View) -> ();
     fn on_input(&mut self, input: Direction) -> ();
 }
 

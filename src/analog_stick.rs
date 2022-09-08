@@ -30,13 +30,6 @@ impl<'a> AnalogStick<'a> {
             ad_converter,
             listener }
     }
-
-    pub fn start_game(&mut self) -> () {
-        loop {
-            self.run_for(100);
-            self.listener.run_for(100)
-        }
-    }
 }
 
 impl<'a> Controller<'a> for AnalogStick<'a> {
