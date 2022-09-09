@@ -1,3 +1,4 @@
+use arduino_hal::Pins;
 use arduino_hal::port::Pin;
 use arduino_hal::port::mode::Output;
 use arduino_hal::hal::port::{PB0, PB1, PB2, PB3, PB4};
@@ -13,24 +14,22 @@ pub struct GameView {
     shift_register: ShiftRegister<
         Pin<Output, PB2>,
         Pin<Output, PB3>,
-        Pin<Output, PB4>,
-        >,
+        Pin<Output, PB4>>,
     ground_pins: GroundPins
 }
 
 impl GameView {
-    pub fn new() -> GameView {
-        let peripherals = arduino_hal::Peripherals::take().unwrap();
-        let pins = arduino_hal::pins!(peripherals);
-
-        let clock_pin = pins.d10.into_output();
-        let latch_pin = pins.d11.into_output();
-        let data_pin = pins.d12.into_output();
+    pub fn new(
+        shift_register: ShiftRegister<
+            Pin<Output, PB2>,
+            Pin<Output, PB3>,
+            Pin<Output, PB4>>,
+        ground_pins: GroundPins) -> GameView {
 
         GameView {
             screen: game_engine::initialize_board(),
-            shift_register: ShiftRegister::new(clock_pin, latch_pin, data_pin),
-            ground_pins: GroundPins::new(),
+            shift_register,
+            ground_pins,
         }
     }
 }
@@ -46,7 +45,7 @@ impl Task for GameView {
     fn run(&mut self) -> () {
         let mut outputs = self.shift_register.decompose();
         for i in 0..8_usize {
-            outputs[i].set_high(); // Add voltage to the ith row of the matrix
+            outputs[i].set_high().ok(); // Add voltage to the ith row of the matrix
 
 
             // Iterate over the row and light up if snake/apple present
@@ -57,16 +56,16 @@ impl Task for GameView {
                 if current_pixel == SNAKE_SEGMENT || current_pixel == APPLE {
                    self.ground_pins.set_pin_low(j)
                 }
+                arduino_hal::delay_us(common::SCREEN_REFRESH_INTERVAL);
+                self.ground_pins.disconnect_ground();
             }
-
-            time_util::sleep_ms(common::SCORE_DISPLAY_TIME);
-            self.ground_pins.disconnect_ground();
+            outputs[i].set_low().ok();
         }
     }
 }
 
 
-struct GroundPins {
+pub struct GroundPins {
     ground_0: Pin<Output, PD2>,
     ground_1: Pin<Output, PD3>,
     ground_2: Pin<Output, PD4>,
@@ -78,19 +77,26 @@ struct GroundPins {
 }
 
 impl GroundPins {
-    pub fn new() -> GroundPins {
-        let peripherals = arduino_hal::Peripherals::take().unwrap();
-        let pins = arduino_hal::pins!(peripherals);
+    pub fn new(
+        ground_0: Pin<Output, PD2>,
+        ground_1: Pin<Output, PD3>,
+        ground_2: Pin<Output, PD4>,
+        ground_3: Pin<Output, PD5>,
+        ground_4: Pin<Output, PD6>,
+        ground_5: Pin<Output, PD7>,
+        ground_6: Pin<Output, PB0>,
+        ground_7: Pin<Output, PB1>
+    ) -> GroundPins {
 
         GroundPins {
-            ground_0: pins.d2.into_output_high(),
-            ground_1: pins.d3.into_output_high(),
-            ground_2: pins.d4.into_output_high(),
-            ground_3: pins.d5.into_output_high(),
-            ground_4: pins.d6.into_output_high(),
-            ground_5: pins.d7.into_output_high(),
-            ground_6: pins.d8.into_output_high(),
-            ground_7: pins.d9.into_output_high()
+            ground_0,
+            ground_1,
+            ground_2,
+            ground_3,
+            ground_4,
+            ground_5,
+            ground_6,
+            ground_7
         }
     }
 
