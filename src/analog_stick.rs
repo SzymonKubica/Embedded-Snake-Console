@@ -1,4 +1,4 @@
-use arduino_hal::Adc;
+use arduino_hal::{Adc, Pins, Peripherals};
 use arduino_hal::hal::port::{PC0, PC1, PC2};
 use arduino_hal::port::{mode::Analog, Pin};
 
@@ -17,17 +17,11 @@ pub struct AnalogStick<'a> {
 
 impl<'a> AnalogStick<'a> {
     pub fn new(
-        listener: &'a mut dyn Model) -> AnalogStick<'a> {
-
-        let peripherals = arduino_hal::Peripherals::take().unwrap();
-        let pins = arduino_hal::pins!(peripherals);
-
-        let mut ad_converter = arduino_hal::Adc::new(
-            peripherals.ADC, Default::default());
-
-        let x_pin = pins.a0.into_analog_input(&mut ad_converter);
-        let y_pin = pins.a1.into_analog_input(&mut ad_converter);
-        let switch_pin = pins.a2.into_analog_input(&mut ad_converter);
+            x_pin: Pin<Analog, PC0>,
+            y_pin: Pin<Analog, PC1>,
+            switch_pin: Pin<Analog, PC2>,
+            ad_converter: Adc,
+            listener: &'a mut dyn Model) -> AnalogStick<'a> {
 
         AnalogStick {
             x_pin,
