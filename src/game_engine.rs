@@ -1,13 +1,12 @@
-use arrayvec::ArrayVec;
-
 use crate::mvc::{Direction, Model, View, Task};
+use crate::internal_representation::Snake;
 
-const MAX_SNAKE_LENGTH: usize = 56;
 
 pub struct GameEngine<'a> {
     view: &'a mut dyn View,
-    game_board: [[u8; 7]; 8], // The board is an 8x7 matrix
+    game_board: [[u8; 8]; 8], // The board is an 8x8 matrix
     score: u8,
+    snake: Snake,
     chosen_direction: Direction
 }
 
@@ -17,6 +16,7 @@ impl<'a> GameEngine<'a> {
             view,
             game_board: initialize_board(),
             score: 0,
+            snake: Snake::new(),
             chosen_direction: Direction::NoDirection }
     }
 }
@@ -29,13 +29,14 @@ impl<'a> Model for GameEngine<'a> {
 
 impl<'a> Task for GameEngine<'a> {
     fn run(&mut self) -> () {
-        todo!()
+        self.view.update(self.game_board);
+        self.view.run();
     }
 }
 
-fn initialize_board() -> [[u8; 7]; 8] {
-    let row: [u8; 7] = Default::default();
-    let mut matrix: [[u8; 7]; 8] = Default::default();
+pub fn initialize_board() -> [[u8; 8]; 8] {
+    let row: [u8; 8] = Default::default();
+    let mut matrix: [[u8; 8]; 8] = Default::default();
 
     for i in 0..8_usize {
         matrix[i] = row;
@@ -44,80 +45,3 @@ fn initialize_board() -> [[u8; 7]; 8] {
     matrix
 }
 
-struct Snake {
-    segments: ArrayVec<SnakeSegment, MAX_SNAKE_LENGTH>,
-    head: SnakeSegment,
-    current_direction: Direction,
-}
-
-impl Snake {
-    pub fn new() -> Snake {
-        Snake {
-            segments: ArrayVec::new(),
-            head: SnakeSegment::new(0, 0),
-            current_direction: Direction::Right
-        }
-    }
-
-    pub fn move_snake(&mut self) {
-        self.move_head(self.current_direction);
-        self.advance_tail();
-    }
-
-    pub fn move_and_grow(&mut self) {
-        self.move_head(self.current_direction);
-    }
-
-    pub fn move_head(&mut self, direction: Direction) {
-        let new_head: SnakeSegment = match direction {
-            Direction::Left        => self.head.translate_left(),
-            Direction::Right       => self.head.translate_right(),
-            Direction::Up          => self.head.translate_up(),
-            Direction::Down        => self.head.translate_down(),
-            Direction::NoDirection => self.head // Unreachable.
-        };
-        self.head = new_head;
-        self.add_segment(self.head);
-    }
-
-    pub fn add_segment(&mut self, segment: SnakeSegment) {
-        self.segments.push(segment)
-    }
-
-
-    pub fn advance_tail(&mut self) -> SnakeSegment {
-        self.segments.remove(0)
-    }
-
-    pub fn change_direction(&mut self, direction: Direction) {
-        self.current_direction = direction;
-    }
-}
-
-#[derive(Copy, Clone)]
-struct SnakeSegment {
-    x_coordinate: u8,
-    y_coordinate: u8,
-}
-
-impl SnakeSegment {
-    pub fn new(x_coordinate: u8, y_coordinate: u8) -> SnakeSegment {
-        SnakeSegment { x_coordinate, y_coordinate }
-    }
-
-    pub fn translate_left(&self) -> SnakeSegment {
-        SnakeSegment::new(self.x_coordinate + 1, self.y_coordinate)
-    }
-
-    pub fn translate_right(&self) -> SnakeSegment {
-        SnakeSegment::new(self.x_coordinate - 1, self.y_coordinate)
-    }
-
-    pub fn translate_up(&self) -> SnakeSegment {
-        SnakeSegment::new(self.x_coordinate, self.y_coordinate + 1)
-    }
-
-    pub fn translate_down(&self) -> SnakeSegment {
-        SnakeSegment::new(self.x_coordinate, self.y_coordinate - 1)
-    }
-}
