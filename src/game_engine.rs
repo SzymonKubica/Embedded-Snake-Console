@@ -1,10 +1,26 @@
+use nanorand::{WyRand, Rng};
+
+use crate::common;
 use crate::mvc::{Direction, Model, View, Task};
 use crate::internal_representation::Snake;
+
+pub const MAX_SNAKE_LENGTH: usize = 64;
+pub const BOARD_DIMENSION: usize = 8;
+
+// Constants representing game objects on a board.
+pub const SNAKE_SEGMENT: u8 = 1;
+pub const APPLE: u8 = 2;
+
+// The first column of the matrix doesn't work, hence we restrict the x range.
+pub const X_LOWER_BOUND: u8 = 1;
+pub const X_UPPER_BOUND: u8 = 7;
+pub const Y_LOWER_BOUND: u8 = 0;
+pub const Y_UPPER_BOUND: u8 = 7;
 
 
 pub struct GameEngine<'a> {
     view: &'a mut dyn View,
-    game_board: [[u8; 8]; 8], // The board is an 8x8 matrix
+    game_board: [[u8; BOARD_DIMENSION]; BOARD_DIMENSION], // The board is an 8x8 matrix
     score: u8,
     snake: Snake,
     chosen_direction: Direction
@@ -18,6 +34,25 @@ impl<'a> GameEngine<'a> {
             score: 0,
             snake: Snake::new(),
             chosen_direction: Direction::NoDirection }
+    }
+
+    fn generate_apple(&mut self) {
+        let mut rng = WyRand::new();
+        loop {
+            let apple_x = rng.generate::<u8>() % common::BOARD_DIMENSION;
+            let apple_y = rng.generate::<u8>() % common::BOARD_DIMENSION;
+
+            if self.is_within_bounds((apple_x, apple_y)) {
+                self.game_board[y][x] = APPLE;
+                return;
+            }
+
+        }
+    }
+
+    fn is_within_bounds(&self, (x, y): (u8, u8)) {
+        X_LOWER_BOUND <= x && x <= X_UPPER_BOUND &&
+        Y_LOWER_BOUND <= y && y <= Y_UPPER_BOUND
     }
 }
 

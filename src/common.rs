@@ -1,7 +1,3 @@
-pub const MAX_SNAKE_LENGTH: usize = 64;
-// Abstraction for game board matrix entries to represent snake and apples.
-pub const SNAKE_SEGMENT: u8 = 1;
-pub const APPLE: u8 = 2;
 
 
 // Constants for the screen.
