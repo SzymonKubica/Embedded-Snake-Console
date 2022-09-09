@@ -54,23 +54,26 @@ impl Snake {
         Snake { segments: ArrayVec::new(), head: SnakeSegment::new(0, 0) }
     }
 
-    pub fn addSegment(&mut self, segment: SnakeSegment) {
+    pub fn add_segment(&mut self, segment: SnakeSegment) {
         self.segments.push(segment)
     }
 
-    pub fn advanceTail(&mut self) -> SnakeSegment {
+    pub fn advance_tail(&mut self) -> SnakeSegment {
         self.segments.remove(0)
     }
 
     pub fn move_snake(&mut self, direction: Direction) {
+        let mut new_head_position: SnakeSegment;
         match direction {
-            Direction::Left => self.addSegment(self.head.translate_left()),
-            Direction::Right => self.addSegment(self.head.translate_right()),
-            Direction::Up => self.addSegment(self.head.translate_up()),
-            Direction::Down => self.addSegment(self.head.translate_down()),
+            Direction::Left => new_head_position = self.head.translate_left(),
+            Direction::Right => new_head_position = self.head.translate_right(),
+            Direction::Up => new_head_position = self.head.translate_up(),
+            Direction::Down => new_head_position = self.head.translate_down(),
             Direction::NoDirection => () // We will never call this,
         }
-        self.advanceTail();
+        self.head = new_head_position;
+        self.add_segment(self.head);
+        self.advance_tail();
     }
 }
 
