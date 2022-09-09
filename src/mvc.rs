@@ -13,8 +13,8 @@ pub trait Model: TimedRunnable {
 }
 
 pub trait View: TimedRunnable {
-    fn display(&self) -> ();
-    fn update(&mut self) -> ();
+    fn update(&mut self, game_board: [[u8; 8]; 8]) -> ();
+
 }
 
 pub trait Controller<'a>: TimedRunnable {
