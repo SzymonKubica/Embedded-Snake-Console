@@ -6,7 +6,7 @@ const MAX_SNAKE_LENGTH: usize = 56;
 
 pub struct GameEngine<'a> {
     view: &'a mut dyn View,
-    game_board: [[u8; 7]; 8],
+    game_board: [[u8; 7]; 8], // The board is an 8x7 matrix
     score: u8,
     chosen_direction: Direction
 }
@@ -46,37 +46,55 @@ fn initialize_board() -> [[u8; 7]; 8] {
 
 struct Snake {
     segments: ArrayVec<SnakeSegment, MAX_SNAKE_LENGTH>,
-    head: SnakeSegment
+    head: SnakeSegment,
+    current_direction: Direction,
 }
 
 impl Snake {
     pub fn new() -> Snake {
-        Snake { segments: ArrayVec::new(), head: SnakeSegment::new(0, 0) }
+        Snake {
+            segments: ArrayVec::new(),
+            head: SnakeSegment::new(0, 0),
+            current_direction: Direction::Right
+        }
+    }
+
+    pub fn move_snake(&mut self) {
+        self.move_head(self.current_direction);
+        self.advance_tail();
+    }
+
+    pub fn move_and_grow(&mut self) {
+        self.move_head(self.current_direction);
+    }
+
+    pub fn move_head(&mut self, direction: Direction) {
+        let new_head: SnakeSegment = match direction {
+            Direction::Left        => self.head.translate_left(),
+            Direction::Right       => self.head.translate_right(),
+            Direction::Up          => self.head.translate_up(),
+            Direction::Down        => self.head.translate_down(),
+            Direction::NoDirection => self.head // Unreachable.
+        };
+        self.head = new_head;
+        self.add_segment(self.head);
     }
 
     pub fn add_segment(&mut self, segment: SnakeSegment) {
         self.segments.push(segment)
     }
 
+
     pub fn advance_tail(&mut self) -> SnakeSegment {
         self.segments.remove(0)
     }
 
-    pub fn move_snake(&mut self, direction: Direction) {
-        let mut new_head_position: SnakeSegment;
-        match direction {
-            Direction::Left => new_head_position = self.head.translate_left(),
-            Direction::Right => new_head_position = self.head.translate_right(),
-            Direction::Up => new_head_position = self.head.translate_up(),
-            Direction::Down => new_head_position = self.head.translate_down(),
-            Direction::NoDirection => () // We will never call this,
-        }
-        self.head = new_head_position;
-        self.add_segment(self.head);
-        self.advance_tail();
+    pub fn change_direction(&mut self, direction: Direction) {
+        self.current_direction = direction;
     }
 }
 
+#[derive(Copy, Clone)]
 struct SnakeSegment {
     x_coordinate: u8,
     y_coordinate: u8,
