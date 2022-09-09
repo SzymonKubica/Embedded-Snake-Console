@@ -1,7 +1,5 @@
 
-use arduino_hal::prelude::*;
 use core::cell;
-use embedded_hal::serial::Read;
 
 const PRESCALER: u32 = 1024;
 const TIMER_COUNTS: u32 = 125;
@@ -42,4 +40,15 @@ fn TIMER0_COMPA() {
 
 pub fn millis() -> u32 {
     avr_device::interrupt::free(|cs| MILLIS_COUNTER.borrow(cs).get())
+}
+
+pub fn sleep_ms(duration_ms: u16) {
+    const FREQUENCY_HZ: u32 = 16_000_000;
+    const CYCLES_PER_MS: u16 = (FREQUENCY_HZ / 1000) as u16;
+
+    for _ in 0..duration_ms {
+        for _ in 0..CYCLES_PER_MS {
+            unsafe { core::arch::asm!(""); }
+        }
+    }
 }
