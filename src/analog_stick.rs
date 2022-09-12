@@ -1,8 +1,9 @@
-use arduino_hal::{Adc, Pins, Peripherals};
+use arduino_hal::Adc;
+use arduino_hal::port::mode::{Input, PullUp};
 use arduino_hal::hal::port::{PC0, PC1, PC2};
 use arduino_hal::port::{mode::Analog, Pin};
 
-use crate::mvc::{Model, Controller, Direction};
+use crate::mvc::{Model, Controller, Direction, ControllerInput};
 
 const ANALOG_LOWER_THRESHOLD: u16 = 200;
 const ANALOG_UPPER_THRESHOLD: u16 = 800;
@@ -10,7 +11,7 @@ const ANALOG_UPPER_THRESHOLD: u16 = 800;
 pub struct AnalogStick<'a> {
     x_pin: Pin<Analog, PC0>,
     y_pin: Pin<Analog, PC1>,
-    switch_pin: Pin<Analog, PC2>,
+    switch_pin: Pin<Input<PullUp>, PC2>,
     ad_converter: Adc,
     listener: &'a mut dyn Model,
 }
@@ -19,7 +20,7 @@ impl<'a> AnalogStick<'a> {
     pub fn new(
             x_pin: Pin<Analog, PC0>,
             y_pin: Pin<Analog, PC1>,
-            switch_pin: Pin<Analog, PC2>,
+            switch_pin: Pin<Input<PullUp>, PC2>,
             ad_converter: Adc,
             listener: &'a mut dyn Model) -> AnalogStick<'a> {
 
@@ -44,26 +45,31 @@ impl<'a> Controller<'a> for AnalogStick<'a> {
      * At present the lower threshold is 200 whereas the upper one is 800.
      *
      */
-    fn get_direction(&mut self) -> Direction {
+    fn read_input(&mut self) -> ControllerInput {
         let x_value: u16 = self.x_pin.analog_read(&mut self.ad_converter);
         let y_value: u16 = self.y_pin.analog_read(&mut self.ad_converter);
 
+        let mut direction: Direction = Direction::NoDirection;
+
         if x_value < ANALOG_LOWER_THRESHOLD {
-            return Direction::Up;
+             direction = Direction::Up;
         }
         if x_value > ANALOG_UPPER_THRESHOLD {
-            return Direction::Down;
+            direction = Direction::Down;
         }
         if y_value < ANALOG_LOWER_THRESHOLD {
-            return Direction::Right;
+            direction = Direction::Right;
         }
         if y_value > ANALOG_UPPER_THRESHOLD {
-            return Direction::Left;
+            direction = Direction::Left;
         }
-        return Direction::NoDirection;
+
+        let switch_input: bool = self.switch_pin.is_low();
+
+        ControllerInput::new(switch_input, direction)
     }
 
-    fn notify_listener(&mut self, input: Direction) -> () {
+    fn notify_listener(&mut self, input: ControllerInput) -> () {
         self.listener.on_input(input);
     }
 }
