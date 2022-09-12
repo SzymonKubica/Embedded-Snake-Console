@@ -8,32 +8,29 @@ use crate::mvc::{Model, Controller, Direction, ControllerInput};
 const ANALOG_LOWER_THRESHOLD: u16 = 200;
 const ANALOG_UPPER_THRESHOLD: u16 = 800;
 
-pub struct AnalogStick<'a> {
+pub struct AnalogStick {
     x_pin: Pin<Analog, PC0>,
     y_pin: Pin<Analog, PC1>,
     switch_pin: Pin<Input<PullUp>, PC2>,
     ad_converter: Adc,
-    listener: &'a mut dyn Model,
 }
 
-impl<'a> AnalogStick<'a> {
+impl<'a> AnalogStick {
     pub fn new(
             x_pin: Pin<Analog, PC0>,
             y_pin: Pin<Analog, PC1>,
             switch_pin: Pin<Input<PullUp>, PC2>,
-            ad_converter: Adc,
-            listener: &'a mut dyn Model) -> AnalogStick<'a> {
+            ad_converter: Adc) -> AnalogStick {
 
         AnalogStick {
             x_pin,
             y_pin,
             switch_pin,
-            ad_converter,
-            listener }
+            ad_converter }
     }
 }
 
-impl<'a> Controller<'a> for AnalogStick<'a> {
+impl Controller for AnalogStick {
     /*
      * The values read from the analog stick range from 0 to 1024 with some
      * minor fluctuations caused by hardware deficiencies. In the neutral
@@ -67,9 +64,5 @@ impl<'a> Controller<'a> for AnalogStick<'a> {
         let switch_input: bool = self.switch_pin.is_low();
 
         ControllerInput::new(switch_input, direction)
-    }
-
-    fn notify_listener(&mut self, input: ControllerInput) -> () {
-        self.listener.on_input(input);
     }
 }
