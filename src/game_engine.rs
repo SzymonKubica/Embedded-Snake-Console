@@ -1,10 +1,6 @@
-use nanorand::{WyRand, Rng};
-
-use crate::common;
 use crate::mvc::{Direction, Model, View, Task};
 use crate::internal_representation::Snake;
 
-pub const MAX_SNAKE_LENGTH: usize = 64;
 pub const BOARD_DIMENSION: usize = 8;
 
 // Constants representing game objects on a board.
@@ -16,7 +12,6 @@ pub const X_LOWER_BOUND: u8 = 1;
 pub const X_UPPER_BOUND: u8 = 7;
 pub const Y_LOWER_BOUND: u8 = 0;
 pub const Y_UPPER_BOUND: u8 = 7;
-
 
 pub struct GameEngine<'a> {
     view: &'a mut dyn View,
@@ -37,20 +32,20 @@ impl<'a> GameEngine<'a> {
     }
 
     fn generate_apple(&mut self) {
-        let mut rng = WyRand::new();
         loop {
-            let apple_x = rng.generate::<u8>() % common::BOARD_DIMENSION;
-            let apple_y = rng.generate::<u8>() % common::BOARD_DIMENSION;
+            let apple_x = generate_random_within(BOARD_DIMENSION);
+            let apple_y = generate_random_within(BOARD_DIMENSION);
 
             if self.is_within_bounds((apple_x, apple_y)) {
-                self.game_board[y][x] = APPLE;
+                self.game_board[apple_y as usize][apple_x as usize] = APPLE;
                 return;
             }
 
         }
     }
 
-    fn is_within_bounds(&self, (x, y): (u8, u8)) {
+
+    fn is_within_bounds(&self, (x, y): (u8, u8)) -> bool {
         X_LOWER_BOUND <= x && x <= X_UPPER_BOUND &&
         Y_LOWER_BOUND <= y && y <= Y_UPPER_BOUND
     }
@@ -64,9 +59,12 @@ impl<'a> Model for GameEngine<'a> {
 
 impl<'a> Task for GameEngine<'a> {
     fn run(&mut self) -> () {
-        self.view.update(self.game_board);
         self.view.run();
     }
+}
+
+fn generate_random_within(range: u8) -> u8 {
+    rand:
 }
 
 pub fn initialize_board() -> [[u8; 8]; 8] {

@@ -1,13 +1,12 @@
-use arduino_hal::Pins;
 use arduino_hal::port::Pin;
 use arduino_hal::port::mode::Output;
 use arduino_hal::hal::port::{PB0, PB1, PB2, PB3, PB4};
 use arduino_hal::hal::port::{PD2, PD3, PD4, PD5, PD6, PD7};
 use embedded_hal::digital::v2::OutputPin;
-use crate::common::{SNAKE_SEGMENT, APPLE};
-use crate::{common, time_util};
 use crate::shift_register::ShiftRegister;
 use crate::{mvc::{View, Task}, game_engine};
+
+pub const SCREEN_REFRESH_INTERVAL: u32 = 150; // 150 microseconds.
 
 pub struct GameView {
     screen: [[u8; 8]; 8],
@@ -53,10 +52,10 @@ impl Task for GameView {
             // the circuit.
             for j in 0..8_usize {
                 let current_pixel = self.screen[j][i];
-                if current_pixel == SNAKE_SEGMENT || current_pixel == APPLE {
+                if current_pixel != 0 {
                    self.ground_pins.set_pin_low(j)
                 }
-                arduino_hal::delay_us(common::SCREEN_REFRESH_INTERVAL);
+                arduino_hal::delay_us(SCREEN_REFRESH_INTERVAL);
                 self.ground_pins.disconnect_ground();
             }
             outputs[i].set_low().ok();

@@ -1,7 +1,8 @@
 use arrayvec::ArrayVec;
 
 use crate::mvc::Direction;
-use crate::common::MAX_SNAKE_LENGTH;
+
+pub const MAX_SNAKE_LENGTH: usize = 64;
 
 pub struct Snake {
     segments: ArrayVec<SnakeSegment, MAX_SNAKE_LENGTH>,
