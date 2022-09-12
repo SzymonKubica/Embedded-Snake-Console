@@ -1,16 +1,26 @@
 // GameBoard is the internal representation of the game area where the snake
 // moves and eats apples.
 
+use crate::common::BOARD_SIZE;
+
+use super::point::Point;
+
+// The first column of the matrix doesn't work, hence we restrict the x range.
+pub const X_LOWER_BOUND: usize = 1;
+pub const X_UPPER_BOUND: usize = 7;
+pub const Y_LOWER_BOUND: usize = 0;
+pub const Y_UPPER_BOUND: usize = 7;
+
 pub struct GameBoard {
-    board: [[Cell; DIMENSION]; DIMENSION],
+    board: [[Cell; BOARD_SIZE]; BOARD_SIZE],
 }
 
 impl GameBoard {
     pub fn new() -> GameBoard {
-        let row: [Cell; DIMENSION] = Default::default();
-        let mut matrix: [[Cell; DIMENSION]; DIMENSION] = Default::default();
+        let row: [Cell; BOARD_SIZE] = Default::default();
+        let mut matrix: [[Cell; BOARD_SIZE]; BOARD_SIZE] = Default::default();
 
-        for i in 0..DIMENSION { matrix[i] = row; }
+        for i in 0..BOARD_SIZE { matrix[i] = row; }
         GameBoard { board: matrix }
     }
 

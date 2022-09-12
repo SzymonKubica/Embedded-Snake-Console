@@ -1,14 +1,10 @@
 use arrayvec::ArrayVec;
 
-use crate::mvc::Direction;
+use crate::{mvc::Direction, common::BOARD_SIZE};
 
-pub const DIMENSION: usize = 8;
-pub const MAX_SNAKE_LENGTH: usize = DIMENSION * DIMENSION;
-// The first column of the matrix doesn't work, hence we restrict the x range.
-pub const X_LOWER_BOUND: usize = 1;
-pub const X_UPPER_BOUND: usize = 7;
-pub const Y_LOWER_BOUND: usize = 0;
-pub const Y_UPPER_BOUND: usize = 7;
+use super::point::Point;
+
+pub const MAX_SNAKE_LENGTH: usize = BOARD_SIZE * BOARD_SIZE;
 
 pub struct Snake {
     pub segments: ArrayVec<Point, MAX_SNAKE_LENGTH>,
@@ -50,31 +46,4 @@ impl Snake {
     }
 }
 
-#[derive(Copy, Clone)]
-pub struct Point {
-    pub x: usize,
-    pub y: usize,
-}
-
-impl Point {
-    pub fn new(x_coordinate: usize, y_coordinate: usize) -> Point {
-        Point { x: x_coordinate, y: y_coordinate }
-    }
-
-    pub fn translate_left(&self) -> Point {
-        Point::new(self.x + 1, self.y)
-    }
-
-    pub fn translate_right(&self) -> Point {
-        Point::new(self.x - 1, self.y)
-    }
-
-    pub fn translate_up(&self) -> Point {
-        Point::new(self.x, self.y + 1)
-    }
-
-    pub fn translate_down(&self) -> Point {
-        Point::new(self.x, self.y - 1)
-    }
-}
 

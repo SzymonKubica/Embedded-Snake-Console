@@ -1,3 +1,4 @@
-mod game_board;
-mod snake;
+pub mod game_board;
+pub mod snake;
+pub mod point;
 
