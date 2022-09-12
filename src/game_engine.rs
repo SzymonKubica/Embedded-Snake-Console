@@ -2,20 +2,18 @@ use rand_chacha::ChaCha8Rng;
 use rand::Rng;
 
 use crate::common::BOARD_SIZE;
+use crate::internal_representation::game_state::{GameState, FRAMES_BETWEEN_MOVES};
 use crate::internal_representation::point::Point;
 use crate::mvc::{Task, Model, Direction, View, ControllerInput};
 use crate::internal_representation::snake::Snake;
 use crate::internal_representation::game_board::{GameBoard, BoardCell};
 
-pub const FRAMES_BETWEEN_MOVES: i32 = 35;
-
 pub struct GameEngine<'a> {
     view: &'a mut dyn View,
-    game_board: GameBoard,
-    score: u8,
+    board: GameBoard,
+    game_state: GameState,
     snake: Snake,
     controller_input: ControllerInput,
-    frames_from_last_move: i32,
     generator: ChaCha8Rng,
 }
 
@@ -23,11 +21,10 @@ impl<'a> GameEngine<'a> {
     pub fn new(view: &'a mut dyn View, generator: ChaCha8Rng) -> GameEngine {
         GameEngine {
             view,
-            game_board: GameBoard::new(),
-            score: 0,
+            board: GameBoard::new(),
+            game_state: GameState::new(),
             snake: Snake::new(),
-            controller_input: ControllerInput::new(false, Direction::NoDirection),
-            frames_from_last_move: 0,
+            controller_input: ControllerInput::default(),
             generator,
         }
     }
@@ -39,8 +36,8 @@ impl<'a> GameEngine<'a> {
 
             let point = Point::new(apple_x, apple_y);
 
-            if self.game_board.is_within_bounds(point) {
-                self.game_board.add_apple(point);
+            if self.board.is_within_bounds(point) {
+                self.board.add_apple(point);
                 return;
             }
         }
@@ -83,6 +80,13 @@ impl<'a> GameEngine<'a> {
     }
 
     fn take_turn(&mut self) {
+
+        if self.game_state.is_game_active
+            && self.controller_input.toggle_signal {
+
+            self.game_over();
+        }
+
         let snake_direction = self.snake.direction;
         let new_direction = self.controller_input.direction;
 
@@ -97,11 +101,11 @@ impl<'a> GameEngine<'a> {
 
         self.snake.move_head();
 
-        if !self.game_board.is_within_bounds(self.snake.head) {
+        if !self.board.is_within_bounds(self.snake.head) {
             self.game_over();
         }
 
-        match self.game_board.read_board_at(self.snake.head) {
+        match self.board.read_board_at(self.snake.head) {
             BoardCell::Apple => self.eat_apple(),
             BoardCell::SnakeSegment => self.game_over(),
             BoardCell::Empty => self.move_snake_forward(),
@@ -109,16 +113,25 @@ impl<'a> GameEngine<'a> {
     }
 
     fn game_over(&mut self) {
-        self.game_board = GameBoard::new();
+        self.board = GameBoard::new();
         self.snake = Snake::new();
         self.controller_input = ControllerInput::default()
     }
 
     fn move_snake_forward(&mut self) {
+        self.board.add_snake_segment(self.snake.head);
+        self.board.erase_entry(self.snake.move_tail());
     }
 
-    fn eat_apple(&self) {
-        todo!()
+    fn eat_apple(&mut self) {
+        self.game_state.score += 1;
+        // We don't erase the cell occupied by the snake's tail which
+        // effectively makes the snake grow.
+        self.generate_apple();
+    }
+
+    fn start_game(&mut self) {
+        self.game_state = GameState::new();
     }
 }
 
@@ -131,11 +144,23 @@ impl<'a> Model for GameEngine<'a> {
 
 impl<'a> Task for GameEngine<'a> {
     fn run(&mut self) -> () {
-        self.view.run();
-        self.frames_from_last_move += 1;
-        if self.frames_from_last_move == FRAMES_BETWEEN_MOVES {
-            self.take_turn();
+        if self.controller_input.toggle_signal &&
+            !self.game_state.is_game_active {
+
+            self.start_game();
+            self.controller_input.toggle_signal = false;
         }
+
+        if self.game_state.is_game_active {
+            self.game_state.frames_from_last_move += 1;
+
+            if self.game_state.frames_from_last_move == FRAMES_BETWEEN_MOVES {
+                self.take_turn();
+                self.game_state.frames_from_last_move = 0;
+            }
+            self.view.update(self.board.to_screen())
+        }
+        self.view.run();
     }
 }
 
