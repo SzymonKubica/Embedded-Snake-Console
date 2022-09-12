@@ -12,13 +12,15 @@ pub const Y_LOWER_BOUND: usize = 0;
 pub const Y_UPPER_BOUND: usize = 7;
 
 pub struct GameBoard {
-    board: [[Cell; BOARD_SIZE]; BOARD_SIZE],
+    board: [[BoardCell; BOARD_SIZE]; BOARD_SIZE],
 }
 
 impl GameBoard {
     pub fn new() -> GameBoard {
-        let row: [Cell; BOARD_SIZE] = Default::default();
-        let mut matrix: [[Cell; BOARD_SIZE]; BOARD_SIZE] = Default::default();
+        let row: [BoardCell; BOARD_SIZE] = Default::default();
+
+        let mut matrix: [[BoardCell; BOARD_SIZE]; BOARD_SIZE]
+            = Default::default();
 
         for i in 0..BOARD_SIZE { matrix[i] = row; }
         GameBoard { board: matrix }
@@ -30,31 +32,32 @@ impl GameBoard {
     }
 
     pub fn add_apple(&mut self, point: Point) {
-        self.update_board_entry(point, Cell::Apple);
+        self.update_board_entry(point, BoardCell::Apple);
     }
 
     pub fn add_snake_segment(&mut self, point: Point) {
-        self.update_board_entry(point, Cell::SnakeSegment);
+        self.update_board_entry(point, BoardCell::SnakeSegment);
     }
 
     pub fn erase_entry(&mut self, point: Point) {
-        self.update_board_entry(point, Cell::Empty)
+        self.update_board_entry(point, BoardCell::Empty)
     }
 
-    pub fn update_board_entry(&mut self, point: Point, value: Cell) {
+    pub fn update_board_entry(&mut self, point: Point, value: BoardCell) {
         self.board[point.y][point.x] = value;
     }
 
-    pub fn read_board_at(&mut self, point: Point) -> Cell {
+    pub fn read_board_at(&mut self, point: Point) -> BoardCell {
         self.board[point.y][point.x]
     }
 }
 
-pub enum Cell {
+#[derive(Copy, Clone)]
+pub enum BoardCell {
     Apple, SnakeSegment, Empty
 }
 
-impl Default for Cell {
+impl Default for BoardCell {
     fn default() -> Self {
         Self::Empty
     }
