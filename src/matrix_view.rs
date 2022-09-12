@@ -1,10 +1,10 @@
 use arduino_hal::port::Pin;
 use arduino_hal::port::mode::Output;
+use embedded_hal::digital::v2::OutputPin;
 use arduino_hal::hal::port::{PB0, PB1, PB2, PB3, PB4};
 use arduino_hal::hal::port::{PD2, PD3, PD4, PD5, PD6, PD7};
-use embedded_hal::digital::v2::OutputPin;
-use crate::shift_register::ShiftRegister;
-use crate::{mvc::{View, Task}, game_engine};
+use crate::libs::shift_register::ShiftRegister;
+use crate::mvc::{View, Task};
 
 pub const SCREEN_REFRESH_INTERVAL: u32 = 150; // 150 microseconds.
 
@@ -26,7 +26,7 @@ impl GameView {
         ground_pins: GroundPins) -> GameView {
 
         GameView {
-            screen: game_engine::initialize_board(),
+            screen: Default::default(),
             shift_register,
             ground_pins,
         }
@@ -47,9 +47,8 @@ impl Task for GameView {
             outputs[i].set_high().ok(); // Add voltage to the ith row of the matrix
 
 
-            // Iterate over the row and light up if snake/apple present
-            // by setting the corresponding ground pin to low thereby completing
-            // the circuit.
+            // Set the corresponding ground pin to low to complete the circuit
+            // and make the led ligth up.
             for j in 0..8_usize {
                 let current_pixel = self.screen[j][i];
                 if current_pixel != 0 {
