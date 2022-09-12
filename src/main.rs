@@ -11,6 +11,8 @@ extern crate arduino_hal;
 extern crate avr_device;
 extern crate embedded_hal;
 extern crate arrayvec;
+extern crate rand;
+extern crate rand_chacha;
 
 mod mvc;
 mod common;
@@ -23,7 +25,7 @@ mod shift_register;
 mod internal_representation;
 
 use matrix_view::GroundPins;
-use mvc::View;
+use rand::SeedableRng;
 use shift_register::ShiftRegister;
 
 use crate::mvc::Task;
@@ -61,12 +63,18 @@ fn main() -> ! {
 
         let mut view = GameView::new(shift_register, ground_pins);
 
-        // Initialise the engine.
-        let mut engine = GameEngine::new(&mut view);
-
-        // Initialise the controller.
         let mut ad_converter = arduino_hal::Adc::new(
             peripherals.ADC, Default::default());
+
+        let noise_pin = pins.a3.into_analog_input(&mut ad_converter);
+
+        let generator = rand_chacha::ChaCha8Rng::
+            seed_from_u64(noise_pin.analog_read(&mut ad_converter) as u64);
+
+        // Initialise the engine.
+        let mut engine = GameEngine::new(&mut view, generator);
+
+        // Initialise the controller.
         let x_pin = pins.a0.into_analog_input(&mut ad_converter);
         let y_pin = pins.a1.into_analog_input(&mut ad_converter);
         let switch_pin = pins.a2.into_analog_input(&mut ad_converter);

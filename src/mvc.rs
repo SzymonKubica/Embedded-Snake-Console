@@ -9,7 +9,7 @@ pub trait TimedRunnable : Task {
 }
 
 pub trait Model: TimedRunnable {
-    fn on_input(&mut self, input: Direction) -> ();
+    fn on_input(&mut self, input: Input) -> ();
 }
 
 pub trait View: TimedRunnable {
@@ -18,8 +18,8 @@ pub trait View: TimedRunnable {
 }
 
 pub trait Controller<'a>: TimedRunnable {
-    fn get_direction(&mut self) -> Direction;
-    fn notify_listener(&mut self, input: Direction) -> ();
+    fn read_input(&mut self) -> Input;
+    fn notify_listener(&mut self, input: Input) -> ();
 }
 
 impl<T> TimedRunnable for T where T: Task {
@@ -35,12 +35,12 @@ impl<T> TimedRunnable for T where T: Task {
 
 impl<'a, T: Controller<'a>> Task for T {
     fn run(&mut self) -> () {
-        let input: Direction = self.get_direction();
+        let input: Input = self.read_input();
         self.notify_listener(input);
     }
 }
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, PartialEq)]
 pub enum Direction {
     Left,
     Right,
@@ -58,5 +58,22 @@ impl Direction {
             Direction::Down        => Direction::Up ,
             Direction::NoDirection => Direction::NoDirection,
         }
+    }
+}
+
+pub struct Input {
+    pub toggle_signal: bool,
+    pub direction: Direction
+}
+
+impl Input {
+    pub fn new(toggle_signal: bool, direction: Direction) -> Input {
+        Input { toggle_signal, direction }
+    }
+}
+
+impl Default for Input {
+    fn default() -> Self {
+        Self { toggle_signal: false, direction: Direction::NoDirection }
     }
 }
