@@ -50,6 +50,21 @@ impl GameBoard {
     pub fn read_board_at(&mut self, point: Point) -> BoardCell {
         self.board[point.y][point.x]
     }
+
+    pub fn to_screen(&self) -> [[u8; 8]; 8] {
+        let mut screen: [[u8; 8]; 8] = Default::default();
+
+        for i in 0..BOARD_SIZE {
+            for j in 0..BOARD_SIZE {
+                match self.board[i][j] {
+                    BoardCell::Apple | BoardCell::SnakeSegment => screen[i][j] = 1,
+                    BoardCell::Empty => (),
+                };
+            }
+        }
+
+        screen
+    }
 }
 
 #[derive(Copy, Clone)]
