@@ -2,9 +2,10 @@ use rand_chacha::ChaCha8Rng;
 use rand::Rng;
 
 use crate::common::BOARD_SIZE;
-use crate::mvc::{Task, Model, Direction, View, Input};
-use crate::internal_representation::snake::{Snake, Point};
-use crate::internal_representation::game_board::{GameBoard, Cell};
+use crate::internal_representation::point::Point;
+use crate::mvc::{Task, Model, Direction, View, ControllerInput};
+use crate::internal_representation::snake::Snake;
+use crate::internal_representation::game_board::{GameBoard, BoardCell};
 
 pub const FRAMES_BETWEEN_MOVES: i32 = 35;
 
@@ -13,7 +14,7 @@ pub struct GameEngine<'a> {
     game_board: GameBoard,
     score: u8,
     snake: Snake,
-    controller_input: Input,
+    controller_input: ControllerInput,
     frames_from_last_move: i32,
     generator: ChaCha8Rng,
 }
@@ -25,7 +26,7 @@ impl<'a> GameEngine<'a> {
             game_board: GameBoard::new(),
             score: 0,
             snake: Snake::new(),
-            controller_input: Input::new(false, Direction::NoDirection),
+            controller_input: ControllerInput::new(false, Direction::NoDirection),
             frames_from_last_move: 0,
             generator,
         }
@@ -81,7 +82,7 @@ impl<'a> GameEngine<'a> {
         }
     }
 
-    fn take_turn(&self) {
+    fn take_turn(&mut self) {
         let snake_direction = self.snake.direction;
         let new_direction = self.controller_input.direction;
 
@@ -101,19 +102,19 @@ impl<'a> GameEngine<'a> {
         }
 
         match self.game_board.read_board_at(self.snake.head) {
-            Cell::Apple => self.eat_apple(),
-            Cell::SnakeSegment => self.game_over(),
-            Cell::Empty => self.move_snake_forward(),
+            BoardCell::Apple => self.eat_apple(),
+            BoardCell::SnakeSegment => self.game_over(),
+            BoardCell::Empty => self.move_snake_forward(),
         };
     }
 
-    fn game_over(&self) {
+    fn game_over(&mut self) {
         self.game_board = GameBoard::new();
         self.snake = Snake::new();
-        self.controller_input = Input::default()
+        self.controller_input = ControllerInput::default()
     }
 
-    fn move_snake_forward(&self) {
+    fn move_snake_forward(&mut self) {
     }
 
     fn eat_apple(&self) {
@@ -122,7 +123,7 @@ impl<'a> GameEngine<'a> {
 }
 
 impl<'a> Model for GameEngine<'a> {
-    fn on_input(&mut self, input: Input) {
+    fn on_input(&mut self, input: ControllerInput) {
         self.update_snake_direction(input.direction);
         self.update_signal(input.toggle_signal);
     }
