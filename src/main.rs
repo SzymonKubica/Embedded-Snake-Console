@@ -16,17 +16,15 @@ extern crate rand_chacha;
 
 mod mvc;
 mod common;
-mod time_util;
 mod game_engine;
 mod matrix_view;
 mod analog_stick;
-#[allow(warnings, unused)]
-mod shift_register;
 mod internal_representation;
+mod libs;
 
 use matrix_view::GroundPins;
 use rand::SeedableRng;
-use shift_register::ShiftRegister;
+use libs::shift_register::ShiftRegister;
 
 use crate::mvc::Task;
 use crate::analog_stick::AnalogStick;
