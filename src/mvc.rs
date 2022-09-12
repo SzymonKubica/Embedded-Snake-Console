@@ -18,9 +18,8 @@ pub trait View: TimedRunnable {
 
 }
 
-pub trait Controller<'a>: TimedRunnable {
+pub trait Controller {
     fn read_input(&mut self) -> ControllerInput;
-    fn notify_listener(&mut self, input: ControllerInput) -> ();
 }
 
 impl<T> TimedRunnable for T where T: Task {
@@ -31,13 +30,6 @@ impl<T> TimedRunnable for T where T: Task {
             self.run();
             current_time = millis();
         }
-    }
-}
-
-impl<'a, T: Controller<'a>> Task for T {
-    fn run(&mut self) -> () {
-        let input: ControllerInput = self.read_input();
-        self.notify_listener(input);
     }
 }
 

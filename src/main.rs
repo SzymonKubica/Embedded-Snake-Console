@@ -23,6 +23,7 @@ mod internal_representation;
 mod libs;
 
 use matrix_view::GroundPins;
+use mvc::{TimedRunnable, Controller, ControllerInput, Model};
 use rand::SeedableRng;
 use libs::shift_register::ShiftRegister;
 
@@ -77,10 +78,16 @@ fn main() -> ! {
         let y_pin = pins.a1.into_analog_input(&mut ad_converter);
         let switch_pin = pins.a2.into_pull_up_input();
 
-        let mut stick = AnalogStick::new(x_pin, y_pin, switch_pin, ad_converter, &mut engine);
+        let mut stick = AnalogStick::new(
+            x_pin,
+            y_pin,
+            switch_pin,
+            ad_converter);
 
         loop {
-            view.run();
+            let input: ControllerInput = stick.read_input();
+            engine.on_input(input);
+            engine.run_for(200000);
         }
     }
 }
