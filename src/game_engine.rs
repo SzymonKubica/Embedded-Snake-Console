@@ -1,9 +1,10 @@
 use rand_chacha::ChaCha8Rng;
 use rand::Rng;
 
+use crate::common::BOARD_SIZE;
 use crate::mvc::{Task, Model, Direction, View, Input};
-
-pub const DIMENSION: usize = 8;
+use crate::internal_representation::snake::{Snake, Point};
+use crate::internal_representation::game_board::{GameBoard, Cell};
 
 pub const FRAMES_BETWEEN_MOVES: i32 = 35;
 
@@ -32,8 +33,8 @@ impl<'a> GameEngine<'a> {
 
     fn generate_apple(&mut self) {
         loop {
-            let apple_x = self.generator.gen_range(0..DIMENSION);
-            let apple_y = self.generator.gen_range(0..DIMENSION);
+            let apple_x = self.generator.gen_range(0..BOARD_SIZE);
+            let apple_y = self.generator.gen_range(0..BOARD_SIZE);
 
             let point = Point::new(apple_x, apple_y);
 
