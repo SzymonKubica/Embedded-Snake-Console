@@ -1,4 +1,5 @@
-use crate::time_util::millis;
+use crate::libs::time_util::millis;
+
 
 pub trait Task {
     fn run(&mut self) -> ();
@@ -9,7 +10,7 @@ pub trait TimedRunnable : Task {
 }
 
 pub trait Model: TimedRunnable {
-    fn on_input(&mut self, input: Input) -> ();
+    fn on_input(&mut self, input: ControllerInput) -> ();
 }
 
 pub trait View: TimedRunnable {
@@ -18,8 +19,8 @@ pub trait View: TimedRunnable {
 }
 
 pub trait Controller<'a>: TimedRunnable {
-    fn read_input(&mut self) -> Input;
-    fn notify_listener(&mut self, input: Input) -> ();
+    fn read_input(&mut self) -> ControllerInput;
+    fn notify_listener(&mut self, input: ControllerInput) -> ();
 }
 
 impl<T> TimedRunnable for T where T: Task {
@@ -35,7 +36,7 @@ impl<T> TimedRunnable for T where T: Task {
 
 impl<'a, T: Controller<'a>> Task for T {
     fn run(&mut self) -> () {
-        let input: Input = self.read_input();
+        let input: ControllerInput = self.read_input();
         self.notify_listener(input);
     }
 }
@@ -61,18 +62,18 @@ impl Direction {
     }
 }
 
-pub struct Input {
+pub struct ControllerInput {
     pub toggle_signal: bool,
     pub direction: Direction
 }
 
-impl Input {
-    pub fn new(toggle_signal: bool, direction: Direction) -> Input {
-        Input { toggle_signal, direction }
+impl ControllerInput {
+    pub fn new(toggle_signal: bool, direction: Direction) -> ControllerInput {
+        ControllerInput { toggle_signal, direction }
     }
 }
 
-impl Default for Input {
+impl Default for ControllerInput {
     fn default() -> Self {
         Self { toggle_signal: false, direction: Direction::NoDirection }
     }

@@ -75,7 +75,7 @@ fn main() -> ! {
         // Initialise the controller.
         let x_pin = pins.a0.into_analog_input(&mut ad_converter);
         let y_pin = pins.a1.into_analog_input(&mut ad_converter);
-        let switch_pin = pins.a2.into_analog_input(&mut ad_converter);
+        let switch_pin = pins.a2.into_pull_up_input();
 
         let mut stick = AnalogStick::new(x_pin, y_pin, switch_pin, ad_converter, &mut engine);
 
