@@ -6,7 +6,7 @@ use crate::common::BOARD_SIZE;
 use super::point::Point;
 
 // The first column of the matrix doesn't work, hence we restrict the x range.
-pub const X_LOWER_BOUND: usize = 1;
+pub const X_LOWER_BOUND: usize = 0;
 pub const X_UPPER_BOUND: usize = 7;
 pub const Y_LOWER_BOUND: usize = 0;
 pub const Y_UPPER_BOUND: usize = 7;
