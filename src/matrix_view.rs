@@ -1,19 +1,20 @@
 use arduino_hal::port::Pin;
 use arduino_hal::port::mode::Output;
 use embedded_hal::digital::v2::OutputPin;
-use arduino_hal::hal::port::{PB0, PB1, PB2, PB3, PB4};
+use arduino_hal::hal::port::{PB0, PB1, PB2, PB3, PB4, PB5};
 use arduino_hal::hal::port::{PD2, PD3, PD4, PD5, PD6, PD7};
 use crate::libs::shift_register::ShiftRegister;
 use crate::mvc::{View, Task};
 
-pub const SCREEN_REFRESH_INTERVAL: u32 = 150; // 150 microseconds.
+pub const SCREEN_REFRESH_INTERVAL: u32 = 100; // 150 microseconds.
 
 pub struct GameView {
     screen: [[u8; 8]; 8],
     shift_register: ShiftRegister<
         Pin<Output, PB2>,
         Pin<Output, PB3>,
-        Pin<Output, PB4>>,
+        Pin<Output, PB4>,
+        Pin<Output, PB5>>,
     ground_pins: GroundPins
 }
 
@@ -22,7 +23,8 @@ impl GameView {
         shift_register: ShiftRegister<
             Pin<Output, PB2>,
             Pin<Output, PB3>,
-            Pin<Output, PB4>>,
+            Pin<Output, PB4>,
+            Pin<Output, PB5>>,
         ground_pins: GroundPins) -> GameView {
 
         GameView {
