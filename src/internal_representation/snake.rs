@@ -14,9 +14,13 @@ pub struct Snake {
 
 impl Snake {
     pub fn new() -> Snake {
+        let head = Point::new(0, 0);
+        let mut segments: ArrayVec<Point, MAX_SNAKE_LENGTH> = ArrayVec::new();
+        segments.push(head);
+
         Snake {
-            segments: ArrayVec::new(),
-            head: Point::new(0, 0),
+            segments,
+            head,
             direction: Direction::Right
         }
     }
