@@ -11,8 +11,7 @@ extern crate arduino_hal;
 extern crate avr_device;
 extern crate embedded_hal;
 extern crate arrayvec;
-extern crate rand;
-extern crate rand_chacha;
+extern crate oorandom;
 
 mod mvc;
 mod common;
@@ -22,12 +21,11 @@ mod analog_stick;
 mod internal_representation;
 mod libs;
 
+use internal_representation::game_board::GameBoard;
 use matrix_view::GroundPins;
-use mvc::{TimedRunnable, Controller, ControllerInput, Model};
-use rand::SeedableRng;
+use mvc::{TimedRunnable, Controller, ControllerInput, Model, Task, View};
 use libs::shift_register::ShiftRegister;
 
-use crate::mvc::Task;
 use crate::analog_stick::AnalogStick;
 use crate::game_engine::GameEngine;
 use crate::matrix_view::GameView;
@@ -47,6 +45,7 @@ fn main() -> ! {
         let clock_pin = pins.d10.into_output();
         let latch_pin = pins.d11.into_output();
         let data_pin = pins.d12.into_output();
+        let ground_0_supply = pins.d13.into_output();
 
         let ground_pins = GroundPins::new(
             pins.d2.into_output_high(),
@@ -58,20 +57,21 @@ fn main() -> ! {
             pins.d8.into_output_high(),
             pins.d9.into_output_high());
 
-        let shift_register = ShiftRegister::new(clock_pin, latch_pin, data_pin);
+        let shift_register = ShiftRegister::new(
+            clock_pin,
+            latch_pin,
+            data_pin,
+            ground_0_supply);
 
         let mut view = GameView::new(shift_register, ground_pins);
 
         let mut ad_converter = arduino_hal::Adc::new(
             peripherals.ADC, Default::default());
 
-        let noise_pin = pins.a3.into_analog_input(&mut ad_converter);
-
-        let generator = rand_chacha::ChaCha8Rng::
-            seed_from_u64(noise_pin.analog_read(&mut ad_converter) as u64);
-
+        let random_noise_pin = pins.a3.into_analog_input(&mut ad_converter);
+        let random_seed = random_noise_pin.analog_read(&mut ad_converter);
         // Initialise the engine.
-        let mut engine = GameEngine::new(&mut view, generator);
+        let mut engine = GameEngine::new(&mut view, random_seed);
 
         // Initialise the controller.
         let x_pin = pins.a0.into_analog_input(&mut ad_converter);
@@ -84,10 +84,11 @@ fn main() -> ! {
             switch_pin,
             ad_converter);
 
+        engine.start_game();
         loop {
             let input: ControllerInput = stick.read_input();
             engine.on_input(input);
-            engine.run_for(200000);
+            engine.run();
         }
     }
 }
