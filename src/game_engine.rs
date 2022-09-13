@@ -1,5 +1,4 @@
-use rand_chacha::ChaCha8Rng;
-use rand::Rng;
+use oorandom::Rand32;
 
 use crate::common::BOARD_SIZE;
 use crate::internal_representation::game_state::{GameState, FRAMES_BETWEEN_MOVES};
@@ -14,27 +13,27 @@ pub struct GameEngine<'a> {
     game_state: GameState,
     snake: Snake,
     controller_input: ControllerInput,
-    generator: ChaCha8Rng,
+    generator: Rand32,
 }
 
 impl<'a> GameEngine<'a> {
-    pub fn new(view: &'a mut dyn View, generator: ChaCha8Rng) -> GameEngine {
+    pub fn new(view: &'a mut dyn View, seed: u16) -> GameEngine {
         GameEngine {
             view,
             board: GameBoard::new(),
             game_state: GameState::new(),
             snake: Snake::new(),
             controller_input: ControllerInput::default(),
-            generator,
+            generator: oorandom::Rand32::new(seed as u64)
         }
     }
 
     fn generate_apple(&mut self) {
         loop {
-            let apple_x = self.generator.gen_range(0..BOARD_SIZE);
-            let apple_y = self.generator.gen_range(0..BOARD_SIZE);
+            let apple_x = self.generator.rand_range(0..BOARD_SIZE as u32);
+            let apple_y = self.generator.rand_range(0..BOARD_SIZE as u32);
 
-            let point = Point::new(apple_x, apple_y);
+            let point = Point::new(apple_x as usize, apple_y as usize);
 
             if self.board.is_within_bounds(point) {
                 self.board.add_apple(point);
@@ -81,11 +80,12 @@ impl<'a> GameEngine<'a> {
 
     fn take_turn(&mut self) {
 
-        if self.game_state.is_game_active
-            && self.controller_input.toggle_signal {
+        //if self.game_state.is_game_active
+         //   && self.controller_input.toggle_signal {
 
-            self.game_over();
-        }
+          //  self.game_over();
+        //}
+
 
         let snake_direction = self.snake.direction;
         let new_direction = self.controller_input.direction;
@@ -99,10 +99,12 @@ impl<'a> GameEngine<'a> {
             self.snake.change_direction(new_direction);
         }
 
+
         self.snake.move_head();
 
         if !self.board.is_within_bounds(self.snake.head) {
             self.game_over();
+            return;
         }
 
         match self.board.read_board_at(self.snake.head) {
@@ -115,11 +117,14 @@ impl<'a> GameEngine<'a> {
     fn game_over(&mut self) {
         self.board = GameBoard::new();
         self.snake = Snake::new();
-        self.controller_input = ControllerInput::default()
+        self.controller_input = ControllerInput::default();
+        self.game_state.is_game_active = false;
     }
 
     fn move_snake_forward(&mut self) {
-        self.board.add_snake_segment(self.snake.head);
+        if self.board.is_within_bounds(self.snake.head) {
+            self.board.add_snake_segment(self.snake.head);
+        }
         self.board.erase_entry(self.snake.move_tail());
     }
 
@@ -130,8 +135,11 @@ impl<'a> GameEngine<'a> {
         self.generate_apple();
     }
 
-    fn start_game(&mut self) {
+    pub fn start_game(&mut self) {
         self.game_state = GameState::new();
+        self.game_state.is_game_active = true;
+        self.board.add_snake_segment(self.snake.head);
+        self.generate_apple();
     }
 }
 
@@ -144,6 +152,7 @@ impl<'a> Model for GameEngine<'a> {
 
 impl<'a> Task for GameEngine<'a> {
     fn run(&mut self) -> () {
+
         if self.controller_input.toggle_signal &&
             !self.game_state.is_game_active {
 
