@@ -1,5 +1,9 @@
 pub const BOARD_SIZE: usize = 8;
 
-// Constants for the screen.
-pub const SCORE_DISPLAY_TIME: u32 = 1000;
-pub const FRAMES_BETWEEN_STEPS: u16 = 32;
+// The time between two steps of the snake,
+// effectively controlling the speed of the game. (miliseconds)
+pub const SNAKE_MOVE_INTERVAL: u32 = 250;
+
+// The time between calls to controller.get_input(). Controlls the
+// responsiveness of the controlls. (miliseconds)
+pub const CONTROLLER_POLLING_INTERVAL: u32 = 100;
