@@ -1,11 +1,11 @@
 #[derive(Copy, Clone)]
 pub struct Point {
-    pub x: usize,
-    pub y: usize,
+    pub x: i8,
+    pub y: i8,
 }
 
 impl Point {
-    pub fn new(x_coordinate: usize, y_coordinate: usize) -> Point {
+    pub fn new(x_coordinate: i8, y_coordinate: i8) -> Point {
         Point { x: x_coordinate, y: y_coordinate }
     }
 
