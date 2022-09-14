@@ -4,7 +4,7 @@ use embedded_hal::digital::v2::OutputPin;
 use arduino_hal::hal::port::{PB0, PB1, PB2, PB3, PB4, PB5};
 use arduino_hal::hal::port::{PD2, PD3, PD4, PD5, PD6, PD7};
 use crate::libs::shift_register::ShiftRegister;
-use crate::mvc::{View, Task};
+use crate::mvc::{View, Runnable};
 
 pub const SCREEN_REFRESH_INTERVAL: u32 = 100; // 150 microseconds.
 
@@ -42,7 +42,7 @@ impl View for GameView {
 
 }
 
-impl Task for GameView {
+impl Runnable for GameView {
     fn run(&mut self) -> () {
         let mut outputs = self.shift_register.decompose();
         for i in 0..8_usize {

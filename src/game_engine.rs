@@ -1,15 +1,14 @@
 use oorandom::Rand32;
 
 use crate::common::{BOARD_SIZE, SNAKE_MOVE_INTERVAL};
+use crate::internal_representation::controller_input::ControllerInput;
+use crate::internal_representation::direction::Direction;
 use crate::internal_representation::game_state::GameState;
 use crate::internal_representation::point::Point;
 use crate::libs::time_util::millis;
-use crate::mvc::{Task, Model, Direction, View, ControllerInput};
+use crate::mvc::{Runnable, Model, View};
 use crate::internal_representation::snake::Snake;
 use crate::internal_representation::game_board::{GameBoard, BoardCell};
-
-
-
 
 pub struct GameEngine<'a> {
     view: &'a mut dyn View,
@@ -18,6 +17,35 @@ pub struct GameEngine<'a> {
     snake: Snake,
     controller_input: ControllerInput,
     generator: Rand32,
+}
+
+impl<'a> Runnable for GameEngine<'a> {
+    fn run(&mut self) -> () {
+
+        if self.controller_input.toggle_signal &&
+            !self.game_state.is_active {
+
+            self.start_game();
+            self.controller_input.toggle_signal = false;
+        }
+
+        if self.game_state.is_active {
+            let now = millis();
+            if now - self.game_state.last_move_timestamp >= SNAKE_MOVE_INTERVAL {
+                self.take_turn();
+                self.game_state.last_move_timestamp = now;
+            }
+        }
+        self.view.update(self.board.to_screen());
+        self.view.run();
+    }
+}
+
+impl<'a> Model for GameEngine<'a> {
+    fn on_input(&mut self, input: ControllerInput) {
+        self.update_snake_direction(input.direction);
+        self.update_signal(input.toggle_signal);
+    }
 }
 
 impl<'a> GameEngine<'a> {
@@ -85,7 +113,7 @@ impl<'a> GameEngine<'a> {
 
     fn take_turn(&mut self) {
 
-        if self.game_state.is_game_active
+        if self.game_state.is_active
             && self.controller_input.toggle_signal {
 
             self.game_over();
@@ -125,7 +153,7 @@ impl<'a> GameEngine<'a> {
         self.board = GameBoard::new();
         self.snake = Snake::new();
         self.controller_input = ControllerInput::default();
-        self.game_state.is_game_active = false;
+        self.game_state.is_active = false;
     }
 
     fn move_snake_forward(&mut self) {
@@ -143,38 +171,8 @@ impl<'a> GameEngine<'a> {
 
     pub fn start_game(&mut self) {
         self.game_state = GameState::new();
-        self.game_state.is_game_active = true;
+        self.game_state.is_active = true;
         self.board.add_snake_segment(self.snake.head);
         self.generate_apple();
     }
 }
-
-impl<'a> Model for GameEngine<'a> {
-    fn on_input(&mut self, input: ControllerInput) {
-        self.update_snake_direction(input.direction);
-        self.update_signal(input.toggle_signal);
-    }
-}
-
-impl<'a> Task for GameEngine<'a> {
-    fn run(&mut self) -> () {
-
-        if self.controller_input.toggle_signal &&
-            !self.game_state.is_game_active {
-
-            self.start_game();
-            self.controller_input.toggle_signal = false;
-        }
-
-        if self.game_state.is_game_active {
-            let now = millis();
-            if now - self.game_state.last_move_timestamp >= SNAKE_MOVE_INTERVAL {
-                self.take_turn();
-                self.game_state.last_move_timestamp = now;
-            }
-        }
-        self.view.update(self.board.to_screen());
-        self.view.run();
-    }
-}
-

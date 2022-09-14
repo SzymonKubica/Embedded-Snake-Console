@@ -22,9 +22,10 @@ mod internal_representation;
 mod libs;
 
 use common::CONTROLLER_POLLING_INTERVAL;
+use internal_representation::controller_input::ControllerInput;
 use libs::time_util::millis_init;
 use matrix_view::GroundPins;
-use mvc::{TimedRunnable, Controller, ControllerInput, Model};
+use mvc::{TimedRunnable, Controller, Model};
 use libs::shift_register::ShiftRegister;
 
 use crate::analog_stick::AnalogStick;
