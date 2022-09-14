@@ -10,7 +10,7 @@ pub const MAX_SNAKE_LENGTH: usize = BOARD_SIZE * BOARD_SIZE;
 pub struct Snake {
     pub segments: ArrayVec<Point, MAX_SNAKE_LENGTH>,
     pub head: Point,
-    pub direction: Direction,
+    direction: Direction,
 }
 
 impl Snake {
@@ -38,12 +38,24 @@ impl Snake {
         self.add_segment(self.head);
     }
 
-    pub fn move_tail(&mut self) -> Point {
+    pub fn advance_tail(&mut self) -> Point {
         self.segments.remove(0)
     }
 
-    pub fn change_direction(&mut self, direction: Direction) {
-        self.direction = direction;
+    pub fn change_direction(&mut self, new_direction: Direction) {
+        // We don't allow changing the direction of the snake to the opposite
+        // of the current direction. That would cause the snake to crash into
+        // itself. We also don't overwrite the direction if it didn't change.
+        if self.direction == new_direction ||
+           self.direction == Direction::get_opposite(new_direction) {
+
+           return;
+        }
+
+        match new_direction {
+            Direction::NoDirection => (), // Snake cannot be stationary.
+            _ => self.direction = new_direction
+        };
     }
 
     fn add_segment(&mut self, segment: Point) {
