@@ -21,9 +21,10 @@ mod analog_stick;
 mod internal_representation;
 mod libs;
 
-use internal_representation::game_board::GameBoard;
+use common::CONTROLLER_POLLING_INTERVAL;
+use libs::time_util::millis_init;
 use matrix_view::GroundPins;
-use mvc::{TimedRunnable, Controller, ControllerInput, Model, Task, View};
+use mvc::{TimedRunnable, Controller, ControllerInput, Model};
 use libs::shift_register::ShiftRegister;
 
 use crate::analog_stick::AnalogStick;
@@ -40,6 +41,10 @@ fn main() -> ! {
     loop {
         let peripherals = arduino_hal::Peripherals::take().unwrap();
         let pins = arduino_hal::pins!(peripherals);
+
+        // Enable the millis() function
+        millis_init(peripherals.TC0);
+        unsafe { avr_device::interrupt::enable() }
 
         // Initialise the view.
         let clock_pin = pins.d10.into_output();
@@ -84,11 +89,10 @@ fn main() -> ! {
             switch_pin,
             ad_converter);
 
-        engine.start_game();
         loop {
             let input: ControllerInput = stick.read_input();
             engine.on_input(input);
-            engine.run();
+            engine.run_for(CONTROLLER_POLLING_INTERVAL);
         }
     }
 }
