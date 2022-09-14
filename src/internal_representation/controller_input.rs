@@ -9,6 +9,10 @@ impl ControllerInput {
     pub fn new(toggle_signal: bool, direction: Direction) -> ControllerInput {
         ControllerInput { toggle_signal, direction }
     }
+
+    pub fn reset_signal(&mut self) {
+        self.toggle_signal = false;
+    }
 }
 
 impl Default for ControllerInput {
