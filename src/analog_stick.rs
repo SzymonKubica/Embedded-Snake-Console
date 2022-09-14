@@ -3,8 +3,10 @@ use arduino_hal::port::mode::{Input, PullUp};
 use arduino_hal::hal::port::{PC0, PC1, PC2};
 use arduino_hal::port::{mode::Analog, Pin};
 
+use crate::internal_representation::controller_input::ControllerInput;
+use crate::internal_representation::direction::Direction;
 use crate::internal_representation::pin_state::PinState;
-use crate::mvc::{Controller, Direction, ControllerInput};
+use crate::mvc::Controller;
 
 const ANALOG_LOWER_THRESHOLD: u16 = 200;
 const ANALOG_UPPER_THRESHOLD: u16 = 800;
