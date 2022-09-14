@@ -1,11 +1,12 @@
 use crate::libs::time_util::millis;
+use crate::internal_representation::controller_input::ControllerInput;
 
 
-pub trait Task {
+pub trait Runnable {
     fn run(&mut self) -> ();
 }
 
-pub trait TimedRunnable : Task {
+pub trait TimedRunnable : Runnable {
     fn run_for(&mut self, miliseconds: u32) -> ();
 }
 
@@ -22,7 +23,7 @@ pub trait Controller {
     fn read_input(&mut self) -> ControllerInput;
 }
 
-impl<T> TimedRunnable for T where T: Task {
+impl<T> TimedRunnable for T where T: Runnable {
     fn run_for(&mut self, miliseconds: u32) -> () {
         let time_slice_start = millis();
         let mut current_time = millis();
@@ -30,43 +31,5 @@ impl<T> TimedRunnable for T where T: Task {
             self.run();
             current_time = millis();
         }
-    }
-}
-
-#[derive(Copy, Clone, PartialEq)]
-pub enum Direction {
-    Left,
-    Right,
-    Up,
-    Down,
-    NoDirection
-}
-
-impl Direction {
-    pub fn get_opposite(direction: Direction) -> Direction {
-        match direction {
-            Direction::Left        => Direction::Right,
-            Direction::Right       => Direction::Left,
-            Direction::Up          => Direction::Down,
-            Direction::Down        => Direction::Up ,
-            Direction::NoDirection => Direction::NoDirection,
-        }
-    }
-}
-
-pub struct ControllerInput {
-    pub toggle_signal: bool,
-    pub direction: Direction
-}
-
-impl ControllerInput {
-    pub fn new(toggle_signal: bool, direction: Direction) -> ControllerInput {
-        ControllerInput { toggle_signal, direction }
-    }
-}
-
-impl Default for ControllerInput {
-    fn default() -> Self {
-        Self { toggle_signal: false, direction: Direction::NoDirection }
     }
 }
