@@ -22,7 +22,7 @@ pub struct GameEngine<'a> {
 }
 
 impl<'a> Runnable for GameEngine<'a> {
-    fn run(&mut self) -> () {
+    fn run_once(&mut self) -> () {
 
         if !self.state.is_active &&
             self.controller_input.toggle_signal {
@@ -37,7 +37,7 @@ impl<'a> Runnable for GameEngine<'a> {
             self.view.update(self.board.to_screen());
         }
 
-        self.view.run();
+        self.view.run_once();
     }
 }
 

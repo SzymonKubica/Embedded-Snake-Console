@@ -43,7 +43,7 @@ impl View for GameView {
 }
 
 impl Runnable for GameView {
-    fn run(&mut self) -> () {
+    fn run_once(&mut self) -> () {
         let mut outputs = self.shift_register.decompose();
         for i in 0..8_usize {
             outputs[i].set_high().ok(); // Add voltage to the ith row of the matrix

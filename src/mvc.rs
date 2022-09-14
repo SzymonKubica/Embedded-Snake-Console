@@ -1,9 +1,10 @@
+use crate::common::BOARD_SIZE;
 use crate::libs::time_util::millis;
 use crate::internal_representation::controller_input::ControllerInput;
 
 
 pub trait Runnable {
-    fn run(&mut self) -> ();
+    fn run_once(&mut self) -> ();
 }
 
 pub trait TimedRunnable : Runnable {
@@ -15,8 +16,7 @@ pub trait Model: TimedRunnable {
 }
 
 pub trait View: TimedRunnable {
-    fn update(&mut self, game_board: [[u8; 8]; 8]) -> ();
-
+    fn update(&mut self, game_board: [[u8; BOARD_SIZE]; BOARD_SIZE]) -> ();
 }
 
 pub trait Controller {
@@ -28,7 +28,7 @@ impl<T> TimedRunnable for T where T: Runnable {
         let time_slice_start = millis();
         let mut current_time = millis();
         while current_time - time_slice_start < miliseconds {
-            self.run();
+            self.run_once();
             current_time = millis();
         }
     }
