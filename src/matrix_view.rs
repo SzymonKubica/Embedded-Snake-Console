@@ -1,15 +1,18 @@
+use embedded_hal::digital::v2::OutputPin;
+
 use arduino_hal::port::Pin;
 use arduino_hal::port::mode::Output;
-use embedded_hal::digital::v2::OutputPin;
 use arduino_hal::hal::port::{PB0, PB1, PB2, PB3, PB4, PB5};
 use arduino_hal::hal::port::{PD2, PD3, PD4, PD5, PD6, PD7};
+
+use crate::common::BOARD_SIZE;
 use crate::libs::shift_register::ShiftRegister;
 use crate::mvc::{View, Runnable};
 
-pub const SCREEN_REFRESH_INTERVAL: u32 = 100; // 150 microseconds.
+pub const SCREEN_REFRESH_INTERVAL: u32 = 100; // 100 microseconds.
 
 pub struct GameView {
-    screen: [[u8; 8]; 8],
+    screen: [[u8; BOARD_SIZE]; BOARD_SIZE],
     shift_register: ShiftRegister<
         Pin<Output, PB2>,
         Pin<Output, PB3>,
@@ -25,7 +28,8 @@ impl GameView {
             Pin<Output, PB3>,
             Pin<Output, PB4>,
             Pin<Output, PB5>>,
-        ground_pins: GroundPins) -> GameView {
+        ground_pins: GroundPins)
+        -> GameView {
 
         GameView {
             screen: Default::default(),
@@ -36,7 +40,7 @@ impl GameView {
 }
 
 impl View for GameView {
-    fn update(&mut self, game_board: [[u8; 8]; 8]) -> () {
+    fn update(&mut self, game_board: [[u8; BOARD_SIZE]; BOARD_SIZE]) -> () {
         self.screen = game_board;
     }
 
@@ -45,25 +49,26 @@ impl View for GameView {
 impl Runnable for GameView {
     fn run_once(&mut self) -> () {
         let mut outputs = self.shift_register.decompose();
-        for i in 0..8_usize {
+        for i in 0..BOARD_SIZE {
             outputs[i].set_high().ok(); // Add voltage to the ith row of the matrix
 
 
             // Set the corresponding ground pin to low to complete the circuit
-            // and make the led ligth up.
-            for j in 0..8_usize {
-                let current_pixel = self.screen[j][i];
-                if current_pixel != 0 {
-                   self.ground_pins.set_pin_low(j)
-                }
+            // and make the led light up. In order to light up the led with
+            // coordinates (x, y) we send voltage on the x-th matrix row pin and
+            // enable (by setting to low) the y-th ground which lights the led.
+            for j in 0..BOARD_SIZE {
+
+                if self.screen[j][i] != 0 { self.ground_pins.set_pin_low(j) }
                 arduino_hal::delay_us(SCREEN_REFRESH_INTERVAL);
                 self.ground_pins.disconnect_ground();
+
             }
+
             outputs[i].set_low().ok();
         }
     }
 }
-
 
 pub struct GroundPins {
     ground_0: Pin<Output, PD2>,
@@ -114,12 +119,6 @@ impl GroundPins {
         }
     }
 
-    fn disconnect_ground(&mut self) {
-        for i in 0..8usize {
-            self.set_pin_high(i);
-        }
-    }
-
     fn set_pin_high(&mut self, index: usize) {
         match index {
             0 => self.ground_0.set_high(),
@@ -134,4 +133,11 @@ impl GroundPins {
         }
     }
 
+    fn disconnect_ground(&mut self) {
+        for i in 0..8usize {
+            self.set_pin_high(i);
+        }
+    }
 }
+
+

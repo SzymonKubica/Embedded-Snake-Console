@@ -3,10 +3,11 @@ use arduino_hal::port::mode::{Input, PullUp};
 use arduino_hal::hal::port::{PC0, PC1, PC2};
 use arduino_hal::port::{mode::Analog, Pin};
 
+use crate::mvc::Controller;
+
 use crate::internal_representation::controller_input::ControllerInput;
 use crate::internal_representation::direction::Direction;
 use crate::internal_representation::pin_state::PinState;
-use crate::mvc::Controller;
 
 const ANALOG_LOWER_THRESHOLD: u16 = 200;
 const ANALOG_UPPER_THRESHOLD: u16 = 800;
@@ -68,18 +69,10 @@ fn toggle_registered(new_state: PinState, old_state: PinState) -> bool {
 fn determine_direction(x_value: u16, y_value: u16) -> Direction {
     let mut direction: Direction = Direction::NoDirection;
 
-    if x_value < ANALOG_LOWER_THRESHOLD {
-         direction = Direction::Up;
-    }
-    if x_value > ANALOG_UPPER_THRESHOLD {
-        direction = Direction::Down;
-    }
-    if y_value < ANALOG_LOWER_THRESHOLD {
-        direction = Direction::Right;
-    }
-    if y_value > ANALOG_UPPER_THRESHOLD {
-        direction = Direction::Left;
-    }
+    if x_value < ANALOG_LOWER_THRESHOLD { direction = Direction::Up; }
+    if x_value > ANALOG_UPPER_THRESHOLD { direction = Direction::Down; }
+    if y_value < ANALOG_LOWER_THRESHOLD { direction = Direction::Right; }
+    if y_value > ANALOG_UPPER_THRESHOLD { direction = Direction::Left; }
 
     direction
 }

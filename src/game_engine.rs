@@ -65,7 +65,7 @@ impl<'a> GameEngine<'a> {
         }
     }
 
-    pub fn start_game(&mut self) {
+    fn start_game(&mut self) {
         self.state = GameState::new();
         self.state.is_active = true;
         self.board.add_snake_segment(self.snake.head);
