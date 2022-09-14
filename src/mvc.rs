@@ -6,7 +6,7 @@ pub trait Task {
 }
 
 pub trait TimedRunnable : Task {
-    fn run_for(&mut self, microseconds: u32) -> ();
+    fn run_for(&mut self, miliseconds: u32) -> ();
 }
 
 pub trait Model: TimedRunnable {
