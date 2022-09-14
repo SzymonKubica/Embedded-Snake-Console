@@ -1,14 +1,14 @@
-pub const FRAMES_BETWEEN_MOVES: i32 = 35;
+use crate::libs::time_util::millis;
 
 pub struct GameState {
     pub score: u8,
-    pub frames_from_last_move: i32,
+    pub last_move_timestamp: u32,
     pub is_game_active: bool,
 }
 
 impl GameState {
     pub fn new() -> GameState {
 
-        GameState { score: 0, frames_from_last_move: 0, is_game_active: false }
+        GameState { score: 0, last_move_timestamp: millis(), is_game_active: false }
     }
 }

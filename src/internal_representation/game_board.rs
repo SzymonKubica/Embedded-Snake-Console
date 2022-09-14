@@ -27,8 +27,10 @@ impl GameBoard {
     }
 
     pub fn is_within_bounds(&self, point: Point) -> bool {
-        X_LOWER_BOUND <= point.x && point.x <= X_UPPER_BOUND &&
-        Y_LOWER_BOUND <= point.y && point.y <= Y_UPPER_BOUND
+        let x = point.x as usize;
+        let y = point.y as usize;
+        X_LOWER_BOUND <= x && x <= X_UPPER_BOUND &&
+        Y_LOWER_BOUND <= y && y <= Y_UPPER_BOUND
     }
 
     pub fn add_apple(&mut self, point: Point) {
@@ -44,11 +46,11 @@ impl GameBoard {
     }
 
     pub fn update_board_entry(&mut self, point: Point, value: BoardCell) {
-        self.board[point.y][point.x] = value;
+        self.board[point.y as usize][point.x as usize] = value;
     }
 
     pub fn read_board_at(&mut self, point: Point) -> BoardCell {
-        self.board[point.y][point.x]
+        self.board[point.y as usize][point.x as usize]
     }
 
     pub fn to_screen(&self) -> [[u8; 8]; 8] {
@@ -67,7 +69,7 @@ impl GameBoard {
     }
 }
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, PartialEq)]
 pub enum BoardCell {
     Apple, SnakeSegment, Empty
 }
