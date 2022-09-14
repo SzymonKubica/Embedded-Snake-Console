@@ -1,11 +1,15 @@
 use oorandom::Rand32;
 
-use crate::common::BOARD_SIZE;
-use crate::internal_representation::game_state::{GameState, FRAMES_BETWEEN_MOVES};
+use crate::common::{BOARD_SIZE, SNAKE_MOVE_INTERVAL};
+use crate::internal_representation::game_state::GameState;
 use crate::internal_representation::point::Point;
+use crate::libs::time_util::millis;
 use crate::mvc::{Task, Model, Direction, View, ControllerInput};
 use crate::internal_representation::snake::Snake;
 use crate::internal_representation::game_board::{GameBoard, BoardCell};
+
+
+
 
 pub struct GameEngine<'a> {
     view: &'a mut dyn View,
@@ -33,9 +37,10 @@ impl<'a> GameEngine<'a> {
             let apple_x = self.generator.rand_range(0..BOARD_SIZE as u32);
             let apple_y = self.generator.rand_range(0..BOARD_SIZE as u32);
 
-            let point = Point::new(apple_x as usize, apple_y as usize);
+            let point = Point::new(apple_x as i8, apple_y as i8);
 
-            if self.board.is_within_bounds(point) {
+            if self.board.is_within_bounds(point) &&
+                self.board.read_board_at(point) == BoardCell::Empty {
                 self.board.add_apple(point);
                 return;
             }
@@ -80,11 +85,12 @@ impl<'a> GameEngine<'a> {
 
     fn take_turn(&mut self) {
 
-        //if self.game_state.is_game_active
-         //   && self.controller_input.toggle_signal {
+        if self.game_state.is_game_active
+            && self.controller_input.toggle_signal {
 
-          //  self.game_over();
-        //}
+            self.game_over();
+            return;
+        }
 
 
         let snake_direction = self.snake.direction;
@@ -95,6 +101,7 @@ impl<'a> GameEngine<'a> {
         // cannot do a U-turn in place and that would cause it to crash into its
         // other segments.
         if snake_direction != new_direction &&
+            new_direction != Direction::NoDirection &&
             snake_direction != Direction::get_opposite(new_direction) {
             self.snake.change_direction(new_direction);
         }
@@ -122,14 +129,13 @@ impl<'a> GameEngine<'a> {
     }
 
     fn move_snake_forward(&mut self) {
-        if self.board.is_within_bounds(self.snake.head) {
-            self.board.add_snake_segment(self.snake.head);
-        }
+        self.board.add_snake_segment(self.snake.head);
         self.board.erase_entry(self.snake.move_tail());
     }
 
     fn eat_apple(&mut self) {
         self.game_state.score += 1;
+        self.board.add_snake_segment(self.snake.head);
         // We don't erase the cell occupied by the snake's tail which
         // effectively makes the snake grow.
         self.generate_apple();
@@ -161,14 +167,13 @@ impl<'a> Task for GameEngine<'a> {
         }
 
         if self.game_state.is_game_active {
-            self.game_state.frames_from_last_move += 1;
-
-            if self.game_state.frames_from_last_move == FRAMES_BETWEEN_MOVES {
+            let now = millis();
+            if now - self.game_state.last_move_timestamp >= SNAKE_MOVE_INTERVAL {
                 self.take_turn();
-                self.game_state.frames_from_last_move = 0;
+                self.game_state.last_move_timestamp = now;
             }
-            self.view.update(self.board.to_screen())
         }
+        self.view.update(self.board.to_screen());
         self.view.run();
     }
 }
