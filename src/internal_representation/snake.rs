@@ -1,8 +1,9 @@
 use arrayvec::ArrayVec;
 
-use crate::{mvc::Direction, common::BOARD_SIZE};
+use crate::common::BOARD_SIZE;
 
 use super::point::Point;
+use super::direction::Direction;
 
 pub const MAX_SNAKE_LENGTH: usize = BOARD_SIZE * BOARD_SIZE;
 
