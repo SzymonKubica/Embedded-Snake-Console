@@ -18,6 +18,7 @@ mod common;
 mod game_engine;
 mod matrix_view;
 mod analog_stick;
+mod user_interface;
 mod internal_representation;
 mod libs;
 
