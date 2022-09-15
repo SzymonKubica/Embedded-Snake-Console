@@ -1,4 +1,5 @@
 use crate::common::BOARD_SIZE;
+use crate::internal_representation::game_board::BoardCell;
 use crate::libs::time_util::millis;
 use crate::internal_representation::controller_input::ControllerInput;
 
@@ -16,7 +17,7 @@ pub trait Model: TimedRunnable {
 }
 
 pub trait View: TimedRunnable {
-    fn update(&mut self, game_board: [[u8; BOARD_SIZE]; BOARD_SIZE]) -> ();
+    fn update(&mut self, screen: [[BoardCell; BOARD_SIZE]; BOARD_SIZE]) -> ();
 }
 
 pub trait Controller {
