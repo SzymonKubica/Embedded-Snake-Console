@@ -6,13 +6,14 @@ use arduino_hal::hal::port::{PB0, PB1, PB2, PB3, PB4, PB5};
 use arduino_hal::hal::port::{PD2, PD3, PD4, PD5, PD6, PD7};
 
 use crate::common::BOARD_SIZE;
+use crate::internal_representation::game_board::BoardCell;
 use crate::libs::shift_register::ShiftRegister;
 use crate::mvc::{View, Runnable};
 
 pub const SCREEN_REFRESH_INTERVAL: u32 = 100; // 100 microseconds.
 
 pub struct GameView {
-    screen: [[u8; BOARD_SIZE]; BOARD_SIZE],
+    screen: [[BoardCell; BOARD_SIZE]; BOARD_SIZE],
     shift_register: ShiftRegister<
         Pin<Output, PB2>,
         Pin<Output, PB3>,
@@ -40,8 +41,8 @@ impl GameView {
 }
 
 impl View for GameView {
-    fn update(&mut self, game_board: [[u8; BOARD_SIZE]; BOARD_SIZE]) -> () {
-        self.screen = game_board;
+    fn update(&mut self, screen: [[BoardCell; BOARD_SIZE]; BOARD_SIZE]) -> () {
+        self.screen = screen;
     }
 
 }
@@ -59,7 +60,10 @@ impl Runnable for GameView {
             // enable (by setting to low) the y-th ground which lights the led.
             for j in 0..BOARD_SIZE {
 
-                if self.screen[j][i] != 0 { self.ground_pins.set_pin_low(j) }
+                if !self.screen[j][i].is_empty() {
+                    self.ground_pins.set_pin_low(j)
+                }
+
                 arduino_hal::delay_us(SCREEN_REFRESH_INTERVAL);
                 self.ground_pins.disconnect_ground();
 
