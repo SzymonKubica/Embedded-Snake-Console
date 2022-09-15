@@ -2,7 +2,7 @@ use oorandom::Rand32;
 
 use crate::common::BOARD_SIZE;
 use crate::libs::time_util::millis;
-use crate::mvc::{Runnable, Model, View};
+use crate::mvc::{Runnable, Model, View, UserInterface};
 
 use crate::internal_representation::controller_input::ControllerInput;
 use crate::internal_representation::direction::Direction;
@@ -10,6 +10,7 @@ use crate::internal_representation::game_state::GameState;
 use crate::internal_representation::point::Point;
 use crate::internal_representation::snake::Snake;
 use crate::internal_representation::game_board::{GameBoard, BoardCell};
+use crate::user_interface::UI;
 
 pub struct GameEngine<'a> {
     state: GameState,
@@ -19,6 +20,7 @@ pub struct GameEngine<'a> {
     generator: Rand32,
     controller_input: ControllerInput,
     view: &'a mut dyn View,
+    interface: UI,
 }
 
 impl<'a> Runnable for GameEngine<'a> {
@@ -34,7 +36,7 @@ impl<'a> Runnable for GameEngine<'a> {
         if self.state.is_active && self.state.is_time_for_next_move() {
             self.state.register_move_at(millis());
             self.make_move();
-            self.view.update(self.board.to_screen());
+            self.view.update(self.board.get_screen());
         }
 
         self.view.run_once();
@@ -61,7 +63,8 @@ impl<'a> GameEngine<'a> {
 
             generator: oorandom::Rand32::new(seed as u64),
             controller_input: ControllerInput::default(),
-            view
+            view,
+            interface: UI {}
         }
     }
 
@@ -70,7 +73,7 @@ impl<'a> GameEngine<'a> {
         self.state.is_active = true;
         self.board.add_snake_segment(self.snake.head);
         self.generate_apple();
-        self.view.update(self.board.to_screen());
+        self.view.update(self.board.get_screen());
     }
 
     fn end_game(&mut self) {
@@ -78,21 +81,20 @@ impl<'a> GameEngine<'a> {
         self.board = GameBoard::new();
         self.controller_input = ControllerInput::default();
         self.state.is_active = false; // state is not reset to save the score.
+        self.board.board = self.interface.print_selection_arrows();
     }
 
     fn make_move(&mut self) {
 
         if self.state.is_active && self.controller_input.toggle_signal {
-           self.end_game();
-           return;
+           return self.end_game();
         }
 
         self.snake.change_direction(self.controller_input.direction);
         self.snake.move_head();
 
         if !self.board.is_within_bounds(self.snake.head) {
-            self.end_game();
-            return;
+            return self.end_game();
         }
 
         match self.board.read_board_at(self.snake.head) {
