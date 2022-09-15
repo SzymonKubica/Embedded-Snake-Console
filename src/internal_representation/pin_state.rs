@@ -5,10 +5,6 @@ pub enum PinState {
 
 impl From<bool> for PinState {
     fn from(state: bool) -> Self {
-        if state {
-            Self::High
-        } else {
-            Self::Low
-        }
+        if state { Self::High } else { Self::Low }
     }
 }

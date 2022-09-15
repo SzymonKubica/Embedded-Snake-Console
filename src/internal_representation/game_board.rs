@@ -16,14 +16,8 @@ pub struct GameBoard {
 }
 
 impl GameBoard {
-    pub fn new() -> GameBoard {
-        let row: [BoardCell; BOARD_SIZE] = Default::default();
-
-        let mut matrix: [[BoardCell; BOARD_SIZE]; BOARD_SIZE]
-            = Default::default();
-
-        for i in 0..BOARD_SIZE { matrix[i] = row; }
-        GameBoard { board: matrix }
+    pub fn new(board: [[BoardCell; BOARD_SIZE]; BOARD_SIZE]) -> GameBoard {
+        GameBoard { board }
     }
 
     pub fn is_within_bounds(&self, point: Point) -> bool {
@@ -53,19 +47,18 @@ impl GameBoard {
         self.board[point.y as usize][point.x as usize]
     }
 
-    pub fn to_screen(&self) -> [[u8; 8]; 8] {
-        let mut screen: [[u8; 8]; 8] = Default::default();
+    pub fn get_screen(&self) -> [[BoardCell; BOARD_SIZE]; BOARD_SIZE] {
+        self.board
+    }
 
-        for i in 0..BOARD_SIZE {
-            for j in 0..BOARD_SIZE {
-                match self.board[i][j] {
-                    BoardCell::Apple | BoardCell::SnakeSegment => screen[i][j] = 1,
-                    BoardCell::Empty => (),
-                };
-            }
-        }
+    pub fn reset(&mut self) {
+        self.board = Default::default();
+    }
+}
 
-        screen
+impl Default for GameBoard {
+    fn default() -> Self {
+        Self { board: Default::default() }
     }
 }
 
@@ -77,5 +70,10 @@ pub enum BoardCell {
 impl Default for BoardCell {
     fn default() -> Self {
         Self::Empty
+    }
+}
+impl BoardCell {
+    pub fn is_empty(&self) -> bool {
+        *self == Self::Empty
     }
 }
