@@ -2,7 +2,7 @@ use oorandom::Rand32;
 
 use crate::common::BOARD_SIZE;
 use crate::libs::time_util::millis;
-use crate::mvc::{Runnable, Model, View, UserInterface};
+use crate::mvc::{Runnable, Model, View};
 
 use crate::internal_representation::controller_input::ControllerInput;
 use crate::internal_representation::direction::Direction;
@@ -10,7 +10,7 @@ use crate::internal_representation::game_state::GameState;
 use crate::internal_representation::point::Point;
 use crate::internal_representation::snake::Snake;
 use crate::internal_representation::game_board::{GameBoard, BoardCell};
-use crate::user_interface::UI;
+use crate::user_interface;
 
 pub struct GameEngine<'a> {
     state: GameState,
@@ -20,7 +20,6 @@ pub struct GameEngine<'a> {
     generator: Rand32,
     controller_input: ControllerInput,
     view: &'a mut dyn View,
-    interface: UI,
 }
 
 impl<'a> Runnable for GameEngine<'a> {
@@ -58,19 +57,19 @@ impl<'a> GameEngine<'a> {
     pub fn new(view: &'a mut dyn View, seed: u16) -> GameEngine {
         GameEngine {
             state: GameState::new(),
-            board: GameBoard::new(),
+            board: GameBoard::default(),
             snake: Snake::new(),
 
             generator: oorandom::Rand32::new(seed as u64),
             controller_input: ControllerInput::default(),
             view,
-            interface: UI {}
         }
     }
 
     fn start_game(&mut self) {
         self.state = GameState::new();
         self.state.is_active = true;
+        self.board = GameBoard::default();
         self.board.add_snake_segment(self.snake.head);
         self.generate_apple();
         self.view.update(self.board.get_screen());
@@ -78,10 +77,9 @@ impl<'a> GameEngine<'a> {
 
     fn end_game(&mut self) {
         self.snake = Snake::new();
-        self.board = GameBoard::new();
+        self.board = GameBoard::new(user_interface::print_score(self.state.score));
         self.controller_input = ControllerInput::default();
         self.state.is_active = false; // state is not reset to save the score.
-        self.board.board = self.interface.print_selection_arrows();
     }
 
     fn make_move(&mut self) {
