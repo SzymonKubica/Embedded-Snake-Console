@@ -2,21 +2,22 @@ use oorandom::Rand32;
 
 use crate::common::BOARD_SIZE;
 use crate::libs::time_util::millis;
+use crate::map_menu::MapMenu;
 use crate::mvc::{Runnable, Model, View};
+use crate::user_interface as UI;
 
 use crate::internal_representation::controller_input::ControllerInput;
 use crate::internal_representation::direction::Direction;
-use crate::internal_representation::game_state::GameState;
+use crate::internal_representation::game_state::{GameState, OperationMode, GameSpeed};
 use crate::internal_representation::point::Point;
 use crate::internal_representation::snake::Snake;
 use crate::internal_representation::game_board::{GameBoard, BoardCell};
-use crate::user_interface;
 
 pub struct GameEngine<'a> {
     state: GameState,
     board: GameBoard,
     snake: Snake,
-
+    map_menu: MapMenu,
     generator: Rand32,
     controller_input: ControllerInput,
     view: &'a mut dyn View,
@@ -24,32 +25,21 @@ pub struct GameEngine<'a> {
 
 impl<'a> Runnable for GameEngine<'a> {
     fn run_once(&mut self) -> () {
-
-        if !self.state.is_active &&
-            self.controller_input.toggle_signal {
-
-            self.start_game();
-            self.controller_input.reset_signal();
+        match self.state.mode {
+            OperationMode::GameRunning => self.run_game(),
+            OperationMode::InMenu      => self.run_menu(),
+            OperationMode::SelectingMap => self.run_map_menu(),
         }
-
-        if self.state.is_active && self.state.is_time_for_next_move() {
-            self.state.register_move_at(millis());
-            self.make_move();
-            self.view.update(self.board.get_screen());
-        }
-
         self.view.run_once();
     }
 }
 
 impl<'a> Model for GameEngine<'a> {
     fn on_input(&mut self, input: ControllerInput) {
-        self.controller_input.toggle_signal = input.toggle_signal;
-
-        match input.direction {
-            Direction::NoDirection => (), // Don't override when no input
-            _ => self.controller_input.direction = input.direction,
-        };
+        match self.state.mode {
+            OperationMode::InMenu      => self.controller_input = input,
+            _                          => self.override_direction_if_set(input),
+        }
     }
 }
 
@@ -59,17 +49,70 @@ impl<'a> GameEngine<'a> {
             state: GameState::new(),
             board: GameBoard::default(),
             snake: Snake::new(),
-
+            map_menu: MapMenu::new(),
             generator: oorandom::Rand32::new(seed as u64),
             controller_input: ControllerInput::default(),
             view,
         }
     }
 
+    fn run_game(&mut self) {
+        if self.controller_input.toggle_signal {
+           return self.end_game();
+        }
+
+        if self.state.is_time_for_next_move() {
+            self.state.register_move_at(millis());
+            self.make_move();
+            self.view.update(self.board.get_screen());
+        }
+    }
+
+    fn run_menu(&mut self) {
+        if self.controller_input.toggle_signal {
+            self.start_game();
+            self.controller_input.reset_signal();
+            return;
+        }
+
+        match self.controller_input.direction {
+            Direction::Left        => self.select_map(),
+            Direction::Up          => self.set_speed(GameSpeed::Slow),
+            Direction::Right       => self.set_speed(GameSpeed::Normal),
+            Direction::Down        => self.set_speed(GameSpeed::Fast),
+            Direction::NoDirection => self.print_score(),
+        }
+    }
+
+    fn run_map_menu(&mut self) {
+        if self.controller_input.toggle_signal {
+            self.start_game();
+            self.controller_input.reset_signal();
+            return;
+        }
+
+        if !self.map_menu.is_time_for_interaction() {
+            return;
+        }
+
+        self.map_menu.register_interaction_at(millis());
+
+        match self.controller_input.direction {
+            Direction::Right       => return self.run_menu(),
+            Direction::Up          => self.map_menu.scroll_up(),
+            Direction::Down        => self.map_menu.scroll_down(),
+            _                      => (),
+        }
+
+        self.controller_input = ControllerInput::default();
+
+        let map = self.map_menu.get_current_map();
+        self.board.board = map;
+        self.view.update(map);
+    }
+
     fn start_game(&mut self) {
-        self.state = GameState::new();
-        self.state.is_active = true;
-        self.board = GameBoard::default();
+        self.state.restart();
         self.board.add_snake_segment(self.snake.head);
         self.generate_apple();
         self.view.update(self.board.get_screen());
@@ -77,17 +120,12 @@ impl<'a> GameEngine<'a> {
 
     fn end_game(&mut self) {
         self.snake = Snake::new();
-        self.board = GameBoard::new(user_interface::print_score(self.state.score));
+        self.board.reset();
         self.controller_input = ControllerInput::default();
-        self.state.is_active = false; // state is not reset to save the score.
+        self.state.mode = OperationMode::InMenu;
     }
 
     fn make_move(&mut self) {
-
-        if self.state.is_active && self.controller_input.toggle_signal {
-           return self.end_game();
-        }
-
         self.snake.change_direction(self.controller_input.direction);
         self.snake.move_head();
 
@@ -96,12 +134,11 @@ impl<'a> GameEngine<'a> {
         }
 
         match self.board.read_board_at(self.snake.head) {
-            BoardCell::Empty        => self.move_snake_forward(),
-            BoardCell::Apple        => self.eat_apple(),
-            BoardCell::SnakeSegment => self.end_game(),
+            BoardCell::Empty                       => self.move_snake_forward(),
+            BoardCell::Apple                       => self.eat_apple(),
+            BoardCell::Snake | BoardCell::Obstacle => self.end_game(),
         };
     }
-
 
     fn move_snake_forward(&mut self) {
         self.board.add_snake_segment(self.snake.head);
@@ -130,5 +167,33 @@ impl<'a> GameEngine<'a> {
                 break;
             }
         }
+    }
+
+    fn override_direction_if_set(&mut self, input: ControllerInput) {
+        self.controller_input.toggle_signal = input.toggle_signal;
+
+        // When in game we don't overwrite the direction if it is not set
+        // because we don't want to lose user input between steps, we want to
+        // read in the direction selection once per snake move and have it
+        // persist even if during the subsequent analog stick readings during
+        // that move the controller returns NoDirection.
+        match input.direction {
+            Direction::NoDirection => (), // Don't override when no input
+            _ => self.controller_input.direction = input.direction,
+        };
+    }
+
+    fn select_map(&mut self) {
+        self.state.mode = OperationMode::SelectingMap;
+        self.view.update(UI::print_up_down_arrows());
+    }
+
+    fn print_score(&mut self) {
+        self.view.update(UI::print_score(self.state.score));
+    }
+
+    fn set_speed(&mut self, speed: GameSpeed) {
+        self.state.game_speed = speed;
+        self.view.update(UI::print_speed(speed))
     }
 }
