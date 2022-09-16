@@ -1,7 +1,16 @@
 use crate::common::{BOARD_SIZE, MAX_SCORE};
 use crate::internal_representation::game_board::BoardCell;
+use crate::internal_representation::game_state::GameSpeed;
 
 pub fn print_score(score: u8) -> [[BoardCell; BOARD_SIZE]; BOARD_SIZE] {
+    if score == 0 {
+        return print_selection_arrows();
+    }
+
+    if score == MAX_SCORE as u8 {
+        return print_trophy();
+    }
+
     assert!(score as usize <= MAX_SCORE);
 
     let first_digit = DIGITS[score as usize / 10_usize];
@@ -10,8 +19,13 @@ pub fn print_score(score: u8) -> [[BoardCell; BOARD_SIZE]; BOARD_SIZE] {
     print_lines(join_pictures(first_digit, second_digit))
 }
 
-pub fn print_level(level_number: usize) -> [[BoardCell; BOARD_SIZE]; BOARD_SIZE] {
-    print_lines(join_pictures(S, DIGITS[level_number]))
+pub fn print_speed(speed: GameSpeed) -> [[BoardCell; BOARD_SIZE]; BOARD_SIZE] {
+    let speed_number = match speed {
+        GameSpeed::Slow   => 1,
+        GameSpeed::Normal => 2,
+        GameSpeed::Fast   => 3,
+    };
+    print_lines(join_pictures(S, DIGITS[speed_number]))
 }
 
 pub fn print_trophy() -> [[BoardCell; BOARD_SIZE]; BOARD_SIZE] {
@@ -20,6 +34,14 @@ pub fn print_trophy() -> [[BoardCell; BOARD_SIZE]; BOARD_SIZE] {
 
 pub fn print_selection_arrows() -> [[BoardCell; BOARD_SIZE]; BOARD_SIZE] {
     print_lines(ARROWS)
+}
+
+pub fn print_up_down_arrows() -> [[BoardCell; BOARD_SIZE]; BOARD_SIZE] {
+    print_lines(UP_OR_DOWN)
+}
+
+pub fn print_map(index: usize) -> [[BoardCell; BOARD_SIZE]; BOARD_SIZE] {
+    print_lines(MAPS[index])
 }
 
 fn print_lines(lines: [u8; BOARD_SIZE])
@@ -50,7 +72,7 @@ fn print_lines(lines: [u8; BOARD_SIZE])
     for i in 0..BOARD_SIZE {
         for j in 0..BOARD_SIZE {
             if is_bit_set(lines[i], j) {
-                screen[i][BOARD_SIZE - j - 1] = BoardCell::Apple;
+                screen[i][BOARD_SIZE - j - 1] = BoardCell::Obstacle;
             }
         }
     }
@@ -92,6 +114,16 @@ const ARROWS: [u8; BOARD_SIZE] = [
 0b_01001000, //  1  1
 0b_00011100, //    111
 0b_00001000];//     1
+             //
+const UP_OR_DOWN: [u8; BOARD_SIZE] = [
+0b_00011000, //    1
+0b_00111100, //   111
+0b_01011010, //    1  1
+0b_00011000, //  1 11111
+0b_00011000, // 11111 1
+0b_01011010, //  1  1
+0b_00111100, //    111
+0b_00011000];//     1
 
 const DIGITS: [[u8; BOARD_SIZE]; 10]
     = [ZERO, ONE, TWO, THREE, FOUR, FIVE, SIX, SEVEN, EIGHT, NINE];
@@ -205,3 +237,78 @@ const S: [u8; BOARD_SIZE] = [
 0b_0001, //    1
 0b_1001, // 1  1
 0b_0110];//  11
+
+pub const MAPS_NUMBER: usize = 7;
+
+const MAPS: [[u8; BOARD_SIZE]; MAPS_NUMBER] =
+[DEFAULT, SEVEN_BY_SEVEN, SIX_BY_SIX, FIVE_BY_FIVE, ZIG_ZAG, SQUEEZE, DOUGHNUT];
+
+const DEFAULT: [u8; BOARD_SIZE] = [
+0b_00000000, //
+0b_00000000, //
+0b_00000000, //
+0b_00000000, //
+0b_00000000, //
+0b_00000000, //
+0b_00000000, //
+0b_00000000];//
+
+const SEVEN_BY_SEVEN: [u8; BOARD_SIZE] = [
+0b_11111111, //
+0b_10000000, //  _______
+0b_10000000, //  _______
+0b_10000000, //  _______
+0b_10000000, //  _______
+0b_10000000, //  _______
+0b_10000000, //  _______
+0b_10000000];//  _______
+
+const SIX_BY_SIX: [u8; BOARD_SIZE] = [
+0b_11111111, //
+0b_10000001, //  ______
+0b_10000001, //  ______
+0b_10000001, //  ______
+0b_10000001, //  ______
+0b_10000001, //  ______
+0b_10000001, //  ______
+0b_11111111];//
+             //
+const FIVE_BY_FIVE: [u8; BOARD_SIZE] = [
+0b_11111111, //
+0b_11111111, //
+0b_11111111, //   _____
+0b_11100000, //   _____
+0b_11100000, //   _____
+0b_11100000, //   _____
+0b_11100000, //   _____
+0b_11100000];//   _____
+
+const ZIG_ZAG: [u8; BOARD_SIZE] = [
+0b_00100000,
+0b_00100000,
+0b_00100000,
+0b_00100000,
+0b_00000100,
+0b_00000100,
+0b_00000100,
+0b_00000100];
+
+const SQUEEZE: [u8; BOARD_SIZE] = [
+0b_00011000,
+0b_00011000,
+0b_00011000,
+0b_00000000,
+0b_00000000,
+0b_00011000,
+0b_00011000,
+0b_00011000];
+
+const DOUGHNUT: [u8; BOARD_SIZE] = [
+0b_00000000,
+0b_00000000,
+0b_00000000,
+0b_00011000,
+0b_00011000,
+0b_00000000,
+0b_00000000,
+0b_00000000];
