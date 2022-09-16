@@ -20,6 +20,7 @@ mod matrix_view;
 mod analog_stick;
 mod user_interface;
 mod internal_representation;
+mod map_menu;
 mod libs;
 
 use common::CONTROLLER_POLLING_INTERVAL;
@@ -72,12 +73,12 @@ fn main() -> ! {
 
         let mut view = GameView::new(shift_register, ground_pins);
 
+        // Initialise the engine.
         let mut ad_converter = arduino_hal::Adc::new(
             peripherals.ADC, Default::default());
 
         let random_noise_pin = pins.a3.into_analog_input(&mut ad_converter);
         let random_seed = random_noise_pin.analog_read(&mut ad_converter);
-        // Initialise the engine.
         let mut engine = GameEngine::new(&mut view, random_seed);
 
         // Initialise the controller.
