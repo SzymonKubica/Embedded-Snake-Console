@@ -12,14 +12,10 @@ pub const Y_LOWER_BOUND: usize = 0;
 pub const Y_UPPER_BOUND: usize = 7;
 
 pub struct GameBoard {
-    board: [[BoardCell; BOARD_SIZE]; BOARD_SIZE],
+    pub board: [[BoardCell; BOARD_SIZE]; BOARD_SIZE],
 }
 
 impl GameBoard {
-    pub fn new(board: [[BoardCell; BOARD_SIZE]; BOARD_SIZE]) -> GameBoard {
-        GameBoard { board }
-    }
-
     pub fn is_within_bounds(&self, point: Point) -> bool {
         let x = point.x as usize;
         let y = point.y as usize;
@@ -32,7 +28,7 @@ impl GameBoard {
     }
 
     pub fn add_snake_segment(&mut self, point: Point) {
-        self.update_board_entry(point, BoardCell::SnakeSegment);
+        self.update_board_entry(point, BoardCell::Snake);
     }
 
     pub fn erase_entry(&mut self, point: Point) {
@@ -64,7 +60,7 @@ impl Default for GameBoard {
 
 #[derive(Copy, Clone, PartialEq)]
 pub enum BoardCell {
-    Apple, SnakeSegment, Empty
+    Apple, Snake, Empty, Obstacle,
 }
 
 impl Default for BoardCell {
