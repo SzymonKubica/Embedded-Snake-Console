@@ -127,30 +127,50 @@ impl<'a> GameEngine<'a> {
 
     fn make_move(&mut self) {
         self.snake.change_direction(self.controller_input.direction);
-        self.snake.move_head();
 
-        if !self.board.is_within_bounds(self.snake.head) {
-            return self.end_game();
+        let cell_ahead = self.snake.look_ahead();
+
+        if !self.board.is_within_bounds(cell_ahead) {
+            return self.use_grace();
         }
 
-        match self.board.read_board_at(self.snake.head) {
+        match self.board.read_board_at(cell_ahead) {
             BoardCell::Empty                       => self.move_snake_forward(),
             BoardCell::Apple                       => self.eat_apple(),
-            BoardCell::Snake | BoardCell::Obstacle => self.end_game(),
+            BoardCell::Snake | BoardCell::Obstacle => self.use_grace(),
         };
     }
 
+    fn use_grace(&mut self) {
+        if self.state.is_grace {
+            self.end_game();
+        } else {
+            self.state.is_grace = true;
+        }
+    }
+
     fn move_snake_forward(&mut self) {
-        self.board.add_snake_segment(self.snake.head);
+        self.move_snake_head();
         self.board.erase_entry(self.snake.advance_tail());
     }
 
     // When eating an apple, we don't erase the cell occupied by the snake's
     // tail which effectively makes the snake grow.
     fn eat_apple(&mut self) {
-        self.board.add_snake_segment(self.snake.head);
+        self.move_snake_head();
         self.state.score += 1;
+
+        if self.state.score as usize == self.map.get_max_score() {
+            return self.end_game();
+        }
+
         self.generate_apple();
+    }
+
+    fn move_snake_head(&mut self) {
+        self.state.reset_grace();
+        self.snake.move_forward();
+        self.board.add_snake_segment(self.snake.head);
     }
 
     fn generate_apple(&mut self) {
@@ -189,7 +209,17 @@ impl<'a> GameEngine<'a> {
     }
 
     fn print_score(&mut self) {
-        self.view.update(UI::print_score(self.state.score));
+        let score = self.state.score;
+
+        let screen = if score == 0 {
+            UI::print_selection_arrows()
+        } else if score as usize == self.map.get_max_score() {
+            UI::print_trophy()
+        } else {
+            UI::print_score(score)
+        };
+
+        self.view.update(screen);
     }
 
     fn set_speed(&mut self, speed: GameSpeed) {
