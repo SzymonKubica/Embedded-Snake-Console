@@ -22,14 +22,17 @@ impl Snake {
         Snake { segments, head, direction: Direction::Right }
     }
 
-    pub fn move_head(&mut self) {
-        self.head = match self.direction {
+    pub fn look_ahead(&mut self) -> Point {
+        match self.direction {
             Direction::Left        => self.head.translate_left(),
             Direction::Right       => self.head.translate_right(),
             Direction::Up          => self.head.translate_up(),
             Direction::Down        => self.head.translate_down(),
             Direction::NoDirection => self.head // Unreachable.
-        };
+        }
+    }
+    pub fn move_forward(&mut self) {
+        self.head = self.look_ahead();
         self.segments.push(self.head);
     }
 
