@@ -22,11 +22,15 @@ impl MapMenu {
         self.last_interaction_timestamp = timestamp;
     }
 
-    pub fn get_current_map(&self) -> [[BoardCell; BOARD_SIZE]; BOARD_SIZE] {
+    pub fn print_current_map(&self) -> [[BoardCell; BOARD_SIZE]; BOARD_SIZE] {
         match self.current_map_index {
             0 => user_interface::print_up_down_arrows(),
-            _ => user_interface::print_map(self.current_map_index)
+            _ => self.get_current_map()
         }
+    }
+
+    pub fn get_current_map(&self) -> [[BoardCell; BOARD_SIZE]; BOARD_SIZE] {
+        user_interface::print_map(self.current_map_index)
     }
 
     pub fn scroll_down(&mut self) {
