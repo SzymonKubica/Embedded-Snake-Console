@@ -6,6 +6,7 @@ pub struct GameState {
     last_move_timestamp: u32,
     pub mode: OperationMode,
     pub game_speed: GameSpeed,
+    pub is_grace: bool,
 }
 
 impl GameState {
@@ -15,6 +16,7 @@ impl GameState {
             last_move_timestamp: millis(),
             mode: OperationMode::InMenu,
             game_speed: GameSpeed::Normal,
+            is_grace: false,
         }
     }
 
@@ -30,6 +32,10 @@ impl GameState {
         self.last_move_timestamp = millis();
         self.score = 0;
         self.mode = OperationMode::GameRunning;
+    }
+
+    pub fn reset_grace(&mut self) {
+        self.is_grace = false;
     }
 }
 
