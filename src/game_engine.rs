@@ -98,7 +98,7 @@ impl<'a> GameEngine<'a> {
         self.map_menu.register_interaction_at(millis());
 
         match self.controller_input.direction {
-            Direction::Right       => return self.run_menu(),
+            Direction::Right       => self.go_to_menu(),
             Direction::Up          => self.map_menu.scroll_up(),
             Direction::Down        => self.map_menu.scroll_down(),
             _                      => (),
@@ -106,13 +106,13 @@ impl<'a> GameEngine<'a> {
 
         self.controller_input = ControllerInput::default();
 
-        let map = self.map_menu.get_current_map();
-        self.board.board = map;
-        self.view.update(map);
+        self.board = GameBoard::new(self.map_menu.get_current_map());
+        self.view.update(self.map_menu.print_current_map());
     }
 
     fn start_game(&mut self) {
         self.state.restart();
+        self.board = GameBoard::new(self.map_menu.get_current_map());
         self.board.add_snake_segment(self.snake.head);
         self.generate_apple();
         self.view.update(self.board.get_screen());
@@ -195,5 +195,9 @@ impl<'a> GameEngine<'a> {
     fn set_speed(&mut self, speed: GameSpeed) {
         self.state.game_speed = speed;
         self.view.update(UI::print_speed(speed))
+    }
+
+    fn go_to_menu(&mut self) {
+        self.state.mode = OperationMode::InMenu;
     }
 }
