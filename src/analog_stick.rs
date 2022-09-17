@@ -9,8 +9,8 @@ use crate::internal_representation::controller_input::ControllerInput;
 use crate::internal_representation::direction::Direction;
 use crate::internal_representation::pin_state::PinState;
 
-const ANALOG_LOWER_THRESHOLD: u16 = 200;
-const ANALOG_UPPER_THRESHOLD: u16 = 800;
+const ANALOG_LOWER_THRESHOLD: u16 = 150;
+const ANALOG_UPPER_THRESHOLD: u16 = 850;
 
 pub struct AnalogStick {
     x_pin: Pin<Analog, PC0>,
