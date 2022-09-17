@@ -13,19 +13,20 @@ pub fn print_score(score: u8) -> [[BoardCell; BOARD_SIZE]; BOARD_SIZE] {
 
     assert!(score as usize <= MAX_SCORE);
 
-    let first_digit = DIGITS[score as usize / 10_usize];
-    let second_digit = DIGITS[score as usize % 10_usize];
+    let digits = [ZERO, ONE, TWO, THREE, FOUR, FIVE, SIX, SEVEN, EIGHT, NINE];
+    let first_digit = digits[score as usize / 10_usize];
+    let second_digit = digits[score as usize % 10_usize];
 
     print_lines(join_pictures(first_digit, second_digit))
 }
 
 pub fn print_speed(speed: GameSpeed) -> [[BoardCell; BOARD_SIZE]; BOARD_SIZE] {
     let speed_number = match speed {
-        GameSpeed::Slow   => 1,
-        GameSpeed::Normal => 2,
-        GameSpeed::Fast   => 3,
+        GameSpeed::Slow   => ONE,
+        GameSpeed::Normal => TWO,
+        GameSpeed::Fast   => THREE,
     };
-    print_lines(join_pictures(S, DIGITS[speed_number]))
+    print_lines(join_pictures(S, speed_number))
 }
 
 pub fn print_trophy() -> [[BoardCell; BOARD_SIZE]; BOARD_SIZE] {
@@ -124,9 +125,6 @@ const UP_OR_DOWN: [u8; BOARD_SIZE] = [
 0b_01011010, //  1  1
 0b_00111100, //    111
 0b_00011000];//     1
-
-const DIGITS: [[u8; BOARD_SIZE]; 10]
-    = [ZERO, ONE, TWO, THREE, FOUR, FIVE, SIX, SEVEN, EIGHT, NINE];
 
 const ZERO: [u8; BOARD_SIZE] = [
 0b_0110, //  11
@@ -244,44 +242,44 @@ const MAPS: [[u8; BOARD_SIZE]; MAPS_NUMBER] =
 [DEFAULT, SEVEN_BY_SEVEN, SIX_BY_SIX, FIVE_BY_FIVE, ZIG_ZAG, SQUEEZE, DOUGHNUT];
 
 const DEFAULT: [u8; BOARD_SIZE] = [
-0b_00000000, //
-0b_00000000, //
-0b_00000000, //
-0b_00000000, //
-0b_00000000, //
-0b_00000000, //
-0b_00000000, //
-0b_00000000];//
+0b_00000000,
+0b_00000000,
+0b_00000000,
+0b_00000000,
+0b_00000000,
+0b_00000000,
+0b_00000000,
+0b_00000000];
 
 const SEVEN_BY_SEVEN: [u8; BOARD_SIZE] = [
-0b_11111111, //
-0b_10000000, //  _______
-0b_10000000, //  _______
-0b_10000000, //  _______
-0b_10000000, //  _______
-0b_10000000, //  _______
-0b_10000000, //  _______
-0b_10000000];//  _______
+0b_00000001,
+0b_00000001,
+0b_00000001,
+0b_00000001,
+0b_00000001,
+0b_00000001,
+0b_00000001,
+0b_11111111];
 
 const SIX_BY_SIX: [u8; BOARD_SIZE] = [
-0b_11111111, //
-0b_10000001, //  ______
-0b_10000001, //  ______
-0b_10000001, //  ______
-0b_10000001, //  ______
-0b_10000001, //  ______
-0b_10000001, //  ______
-0b_11111111];//
-             //
+0b_00000011,
+0b_00000011,
+0b_00000011,
+0b_00000011,
+0b_00000011,
+0b_00000011,
+0b_11111111,
+0b_11111111];
+
 const FIVE_BY_FIVE: [u8; BOARD_SIZE] = [
-0b_11111111, //
-0b_11111111, //
-0b_11111111, //   _____
-0b_11100000, //   _____
-0b_11100000, //   _____
-0b_11100000, //   _____
-0b_11100000, //   _____
-0b_11100000];//   _____
+0b_00000111,
+0b_00000111,
+0b_00000111,
+0b_00000111,
+0b_00000111,
+0b_11111111,
+0b_11111111,
+0b_11111111];
 
 const ZIG_ZAG: [u8; BOARD_SIZE] = [
 0b_00100000,
