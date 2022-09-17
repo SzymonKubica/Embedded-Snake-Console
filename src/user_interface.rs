@@ -3,14 +3,6 @@ use crate::internal_representation::game_board::BoardCell;
 use crate::internal_representation::game_state::GameSpeed;
 
 pub fn print_score(score: u8) -> [[BoardCell; BOARD_SIZE]; BOARD_SIZE] {
-    if score == 0 {
-        return print_selection_arrows();
-    }
-
-    if score == MAX_SCORE as u8 {
-        return print_trophy();
-    }
-
     assert!(score as usize <= MAX_SCORE);
 
     let digits = [ZERO, ONE, TWO, THREE, FOUR, FIVE, SIX, SEVEN, EIGHT, NINE];
