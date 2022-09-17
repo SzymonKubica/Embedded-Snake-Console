@@ -12,10 +12,13 @@ pub const Y_LOWER_BOUND: usize = 0;
 pub const Y_UPPER_BOUND: usize = 7;
 
 pub struct GameBoard {
-    pub board: [[BoardCell; BOARD_SIZE]; BOARD_SIZE],
+    board: [[BoardCell; BOARD_SIZE]; BOARD_SIZE],
 }
 
 impl GameBoard {
+    pub fn new(board: [[BoardCell; BOARD_SIZE]; BOARD_SIZE]) -> GameBoard {
+        GameBoard { board }
+    }
     pub fn is_within_bounds(&self, point: Point) -> bool {
         let x = point.x as usize;
         let y = point.y as usize;
