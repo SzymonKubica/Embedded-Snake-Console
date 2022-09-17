@@ -1,7 +1,7 @@
-use crate::common::BOARD_SIZE;
+use crate::common::{BOARD_SIZE, MAX_SCORE};
 use crate::internal_representation::game_board::BoardCell;
 use crate::libs::time_util::millis;
-use crate::user_interface::{self, MAPS_NUMBER};
+use crate::user_interface::{self as UI, MAPS_NUMBER};
 
 const INTERACTION_INTERVAL: u32 = 500; // miliseconds
 
@@ -24,13 +24,17 @@ impl Map {
 
     pub fn print_current_map(&self) -> [[BoardCell; BOARD_SIZE]; BOARD_SIZE] {
         match self.current_map_index {
-            0 => user_interface::print_up_down_arrows(),
+            0 => UI::print_up_down_arrows(),
             _ => self.get_current_map()
         }
     }
 
     pub fn get_current_map(&self) -> [[BoardCell; BOARD_SIZE]; BOARD_SIZE] {
-        user_interface::print_map(self.current_map_index)
+        UI::print_map(self.current_map_index)
+    }
+
+    pub fn get_max_score(&self) -> usize {
+        MAX_SCORE - count_obstacles(self.get_current_map())
     }
 
     pub fn get_previous(&mut self) {
@@ -40,4 +44,13 @@ impl Map {
     pub fn get_next(&mut self) {
         self.current_map_index = (self.current_map_index + 1) % MAPS_NUMBER;
     }
+}
+
+fn count_obstacles(map: [[BoardCell; BOARD_SIZE]; BOARD_SIZE]) -> usize {
+    let mut count: usize = 0;
+    for row in map {
+        row.iter()
+            .filter(|cell| **cell == BoardCell::Obstacle)
+            .for_each(|_| count += 1); }
+    count
 }
