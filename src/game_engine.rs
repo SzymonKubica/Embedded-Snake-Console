@@ -1,8 +1,8 @@
 use oorandom::Rand32;
 
 use crate::common::BOARD_SIZE;
+use crate::internal_representation::map::Map;
 use crate::libs::time_util::millis;
-use crate::map_menu::MapMenu;
 use crate::mvc::{Runnable, Model, View};
 use crate::user_interface as UI;
 
@@ -17,7 +17,7 @@ pub struct GameEngine<'a> {
     state: GameState,
     board: GameBoard,
     snake: Snake,
-    map_menu: MapMenu,
+    map: Map,
     generator: Rand32,
     controller_input: ControllerInput,
     view: &'a mut dyn View,
@@ -26,8 +26,8 @@ pub struct GameEngine<'a> {
 impl<'a> Runnable for GameEngine<'a> {
     fn run_once(&mut self) -> () {
         match self.state.mode {
-            OperationMode::GameRunning => self.run_game(),
-            OperationMode::InMenu      => self.run_menu(),
+            OperationMode::GameRunning  => self.run_game(),
+            OperationMode::InMenu       => self.run_menu(),
             OperationMode::SelectingMap => self.run_map_menu(),
         }
         self.view.run_once();
@@ -37,8 +37,8 @@ impl<'a> Runnable for GameEngine<'a> {
 impl<'a> Model for GameEngine<'a> {
     fn on_input(&mut self, input: ControllerInput) {
         match self.state.mode {
-            OperationMode::InMenu      => self.controller_input = input,
-            _                          => self.override_direction_if_set(input),
+            OperationMode::InMenu => self.controller_input = input,
+            _                     => self.override_direction_if_set(input),
         }
     }
 }
@@ -49,7 +49,7 @@ impl<'a> GameEngine<'a> {
             state: GameState::new(),
             board: GameBoard::default(),
             snake: Snake::new(),
-            map_menu: MapMenu::new(),
+            map: Map::new(),
             generator: oorandom::Rand32::new(seed as u64),
             controller_input: ControllerInput::default(),
             view,
@@ -91,28 +91,28 @@ impl<'a> GameEngine<'a> {
             return;
         }
 
-        if !self.map_menu.is_time_for_interaction() {
+        if !self.map.is_time_for_interaction() {
             return;
         }
 
-        self.map_menu.register_interaction_at(millis());
+        self.map.register_interaction_at(millis());
 
         match self.controller_input.direction {
-            Direction::Right       => self.go_to_menu(),
-            Direction::Up          => self.map_menu.scroll_up(),
-            Direction::Down        => self.map_menu.scroll_down(),
-            _                      => (),
+            Direction::Right => self.go_to_menu(),
+            Direction::Up    => self.map.get_next(),
+            Direction::Down  => self.map.get_previous(),
+            _                => (),
         }
 
         self.controller_input = ControllerInput::default();
 
-        self.board = GameBoard::new(self.map_menu.get_current_map());
-        self.view.update(self.map_menu.print_current_map());
+        self.board = GameBoard::new(self.map.get_current_map());
+        self.view.update(self.map.print_current_map());
     }
 
     fn start_game(&mut self) {
         self.state.restart();
-        self.board = GameBoard::new(self.map_menu.get_current_map());
+        self.board = GameBoard::new(self.map.get_current_map());
         self.board.add_snake_segment(self.snake.head);
         self.generate_apple();
         self.view.update(self.board.get_screen());

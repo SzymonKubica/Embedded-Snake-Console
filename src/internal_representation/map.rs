@@ -5,13 +5,13 @@ use crate::user_interface::{self, MAPS_NUMBER};
 
 const INTERACTION_INTERVAL: u32 = 500; // miliseconds
 
-pub struct MapMenu {
+pub struct Map {
     current_map_index: usize,
     last_interaction_timestamp: u32
 }
-impl MapMenu {
-    pub fn new() -> MapMenu {
-        MapMenu { current_map_index: 0, last_interaction_timestamp: millis() }
+impl Map {
+    pub fn new() -> Map {
+        Map { current_map_index: 0, last_interaction_timestamp: millis() }
     }
 
     pub fn is_time_for_interaction(&self) -> bool {
@@ -33,11 +33,11 @@ impl MapMenu {
         user_interface::print_map(self.current_map_index)
     }
 
-    pub fn scroll_down(&mut self) {
+    pub fn get_previous(&mut self) {
         self.current_map_index = (self.current_map_index + MAPS_NUMBER - 1) % MAPS_NUMBER;
     }
 
-    pub fn scroll_up(&mut self) {
+    pub fn get_next(&mut self) {
         self.current_map_index = (self.current_map_index + 1) % MAPS_NUMBER;
     }
 }

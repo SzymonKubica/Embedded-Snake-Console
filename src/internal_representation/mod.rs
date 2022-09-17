@@ -5,4 +5,5 @@ pub mod direction;
 pub mod controller_input;
 pub mod snake;
 pub mod point;
+pub mod map;
 

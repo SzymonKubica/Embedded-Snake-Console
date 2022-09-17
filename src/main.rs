@@ -20,7 +20,6 @@ mod matrix_view;
 mod analog_stick;
 mod user_interface;
 mod internal_representation;
-mod map_menu;
 mod libs;
 
 use common::CONTROLLER_POLLING_INTERVAL;
