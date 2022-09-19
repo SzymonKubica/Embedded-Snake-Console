@@ -1,17 +1,17 @@
 use oorandom::Rand32;
 
 use crate::common::BOARD_SIZE;
-use crate::internal_representation::map::Map;
 use crate::libs::time_util::millis;
-use crate::mvc::{Runnable, Model, View};
+use crate::traits::{Runnable, ControllerListener, View};
 use crate::user_interface as UI;
 
 use crate::internal_representation::controller_input::ControllerInput;
-use crate::internal_representation::direction::Direction;
 use crate::internal_representation::game_state::{GameState, OperationMode, GameSpeed};
-use crate::internal_representation::point::Point;
-use crate::internal_representation::snake::Snake;
 use crate::internal_representation::game_board::{GameBoard, BoardCell};
+use crate::internal_representation::map::Map;
+use crate::internal_representation::snake::Snake;
+use crate::internal_representation::point::Point;
+use crate::internal_representation::direction::Direction;
 
 pub struct GameEngine<'a> {
     state: GameState,
@@ -34,7 +34,7 @@ impl<'a> Runnable for GameEngine<'a> {
     }
 }
 
-impl<'a> Model for GameEngine<'a> {
+impl<'a> ControllerListener for GameEngine<'a> {
     fn on_input(&mut self, input: ControllerInput) {
         match self.state.mode {
             OperationMode::InMenu => self.controller_input = input,
@@ -58,7 +58,8 @@ impl<'a> GameEngine<'a> {
 
     fn run_game(&mut self) {
         if self.controller_input.toggle_signal {
-           return self.end_game();
+           self.end_game();
+           return;
         }
 
         if self.state.is_time_for_next_move() {
@@ -98,7 +99,7 @@ impl<'a> GameEngine<'a> {
         self.map.register_interaction_at(millis());
 
         match self.controller_input.direction {
-            Direction::Right => self.go_to_menu(),
+            Direction::Right => self.state.return_to_menu(),
             Direction::Up    => self.map.get_next(),
             Direction::Down  => self.map.get_previous(),
             _                => (),
@@ -111,18 +112,18 @@ impl<'a> GameEngine<'a> {
     }
 
     fn start_game(&mut self) {
-        self.state.restart();
         self.board = GameBoard::new(self.map.get_current_map());
         self.board.add_snake_segment(self.snake.head);
-        self.generate_apple();
+        self.spawn_apple();
+        self.state.start();
         self.view.update(self.board.get_screen());
     }
 
     fn end_game(&mut self) {
         self.snake = Snake::new();
         self.board.reset();
+        self.state.return_to_menu();
         self.controller_input = ControllerInput::default();
-        self.state.mode = OperationMode::InMenu;
     }
 
     fn make_move(&mut self) {
@@ -131,7 +132,8 @@ impl<'a> GameEngine<'a> {
         let cell_ahead = self.snake.look_ahead();
 
         if !self.board.is_within_bounds(cell_ahead) {
-            return self.use_grace();
+            self.use_grace();
+            return;
         }
 
         match self.board.read_board_at(cell_ahead) {
@@ -142,10 +144,10 @@ impl<'a> GameEngine<'a> {
     }
 
     fn use_grace(&mut self) {
-        if self.state.is_grace {
+        if self.state.is_grace_pending {
             self.end_game();
         } else {
-            self.state.is_grace = true;
+            self.state.is_grace_pending = true;
         }
     }
 
@@ -161,10 +163,11 @@ impl<'a> GameEngine<'a> {
         self.state.score += 1;
 
         if self.state.score as usize == self.map.get_max_score() {
+            // Terminate if the player wins by filling the whole board.
             return self.end_game();
         }
 
-        self.generate_apple();
+        self.spawn_apple();
     }
 
     fn move_snake_head(&mut self) {
@@ -173,16 +176,14 @@ impl<'a> GameEngine<'a> {
         self.board.add_snake_segment(self.snake.head);
     }
 
-    fn generate_apple(&mut self) {
+    fn spawn_apple(&mut self) {
         loop {
             let apple_x = self.generator.rand_range(0..BOARD_SIZE as u32) as i8;
             let apple_y = self.generator.rand_range(0..BOARD_SIZE as u32) as i8;
 
             let point = Point::new(apple_x, apple_y);
 
-            if self.board.is_within_bounds(point) &&
-               self.board.read_board_at(point) == BoardCell::Empty {
-
+            if self.board.read_board_at(point) == BoardCell::Empty {
                 self.board.add_apple(point);
                 break;
             }
@@ -225,9 +226,5 @@ impl<'a> GameEngine<'a> {
     fn set_speed(&mut self, speed: GameSpeed) {
         self.state.game_speed = speed;
         self.view.update(UI::print_speed(speed))
-    }
-
-    fn go_to_menu(&mut self) {
-        self.state.mode = OperationMode::InMenu;
     }
 }
