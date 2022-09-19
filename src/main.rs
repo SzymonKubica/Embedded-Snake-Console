@@ -85,14 +85,14 @@ fn main() -> ! {
         let y_pin = pins.a1.into_analog_input(&mut ad_converter);
         let switch_pin = pins.a2.into_pull_up_input();
 
-        let mut stick = AnalogStick::new(
+        let mut controller = AnalogStick::new(
             x_pin,
             y_pin,
             switch_pin,
             ad_converter);
 
         loop {
-            let input: ControllerInput = stick.read_input();
+            let input: ControllerInput = controller.read_input();
             engine.on_input(input);
             engine.run_for(CONTROLLER_POLLING_INTERVAL);
         }
