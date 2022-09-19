@@ -48,7 +48,7 @@ macro_rules! ShiftRegisterBuilder {
             clock: RefCell<Pin1>,
             latch: RefCell<Pin2>,
             data: RefCell<Pin3>,
-            ground_0_supply: RefCell<Pin4>, // Need an external voltage supply as output 0 of my
+            pin_0_supply: RefCell<Pin4>, // Need an external voltage supply as output 0 of my
                                             // shift register doesn't give enough voltage.
             output_state: RefCell<[bool; $size]>,
         }
@@ -92,28 +92,22 @@ macro_rules! ShiftRegisterBuilder {
                     clock: RefCell::new(clock),
                     latch: RefCell::new(latch),
                     data: RefCell::new(data),
-                    ground_0_supply: RefCell::new(ground_0),
+                    pin_0_supply: RefCell::new(ground_0),
                     output_state: RefCell::new([false; $size]),
                 }
             }
 
             /// Sets the voltage of a given output respectively, if requested to
-            /// set the output_0 to high, it instead sets the ground_0_supply to
+            /// set the output_0 to high, it instead sets the pin_0_supply to
             /// high, because output_0 doesn't supply enough voltage.
             fn set_pin(&self, index: usize, set_high: bool) {
                 if index == 0 {
-                    if set_high {
-                        self.ground_0_supply.borrow_mut().set_high();
-                    } else {
-                        self.ground_0_supply.borrow_mut().set_low();
-                    }
+                    if set_high { self.pin_0_supply.borrow_mut().set_high(); }
+                    else { self.pin_0_supply.borrow_mut().set_low(); }
                 }
 
-                if set_high {
-                    self.data.borrow_mut().set_high();
-                } else {
-                    self.data.borrow_mut().set_low();
-                }
+                if set_high { self.data.borrow_mut().set_high(); }
+                else { self.data.borrow_mut().set_low(); }
             }
 
             /// Get embedded-hal output pins to control the shift register outputs
@@ -132,11 +126,10 @@ macro_rules! ShiftRegisterBuilder {
 
             /// Consume the shift register and return the original clock, latch, and data output pins
             pub fn release(self) -> (Pin1, Pin2, Pin3, Pin4) {
-                let Self{clock, latch, data, ground_0_supply, output_state: _} = self;
-                (clock.into_inner(), latch.into_inner(), data.into_inner(), ground_0_supply.into_inner())
+                let Self{clock, latch, data, pin_0_supply, output_state: _} = self;
+                (clock.into_inner(), latch.into_inner(), data.into_inner(), pin_0_supply.into_inner())
             }
         }
-
     }
 }
 
