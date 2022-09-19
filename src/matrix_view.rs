@@ -10,7 +10,7 @@ use crate::internal_representation::game_board::BoardCell;
 use crate::libs::shift_register::ShiftRegister;
 use crate::traits::{View, Runnable};
 
-pub const SCREEN_REFRESH_INTERVAL: u32 = 50; // 50 microseconds.
+pub const SCREEN_REFRESH_INTERVAL: u32 = 150; // 150 microseconds.
 
 pub struct GameView {
     screen: [[BoardCell; BOARD_SIZE]; BOARD_SIZE],
