@@ -8,7 +8,7 @@ use arduino_hal::hal::port::{PD2, PD3, PD4, PD5, PD6, PD7};
 use crate::common::BOARD_SIZE;
 use crate::internal_representation::game_board::BoardCell;
 use crate::libs::shift_register::ShiftRegister;
-use crate::mvc::{View, Runnable};
+use crate::traits::{View, Runnable};
 
 pub const SCREEN_REFRESH_INTERVAL: u32 = 100; // 100 microseconds.
 

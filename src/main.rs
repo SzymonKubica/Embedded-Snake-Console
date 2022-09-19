@@ -13,7 +13,7 @@ extern crate embedded_hal;
 extern crate arrayvec;
 extern crate oorandom;
 
-mod mvc;
+mod traits;
 mod common;
 mod game_engine;
 mod matrix_view;
@@ -26,7 +26,7 @@ use common::CONTROLLER_POLLING_INTERVAL;
 use internal_representation::controller_input::ControllerInput;
 use libs::time_util::millis_init;
 use matrix_view::GroundPins;
-use mvc::{TimedRunnable, Controller, Model};
+use traits::{TimedRunnable, Controller, ControllerListener};
 use libs::shift_register::ShiftRegister;
 
 use crate::analog_stick::AnalogStick;
