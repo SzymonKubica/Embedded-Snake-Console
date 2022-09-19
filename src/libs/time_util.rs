@@ -15,11 +15,11 @@ pub fn millis_init(tc0: arduino_hal::pac::TC0) {
     tc0.tccr0a.write(|w| w.wgm0().ctc());
     tc0.ocr0a.write(|w| unsafe { w.bits(TIMER_COUNTS as u8) });
     tc0.tccr0b.write(|w| match PRESCALER {
-        8 => w.cs0().prescale_8(),
-        64 => w.cs0().prescale_64(),
-        256 => w.cs0().prescale_256(),
+        8    => w.cs0().prescale_8(),
+        64   => w.cs0().prescale_64(),
+        256  => w.cs0().prescale_256(),
         1024 => w.cs0().prescale_1024(),
-        _ => panic!(),
+        _    => panic!(),
     });
     tc0.timsk0.write(|w| w.ocie0a().set_bit());
 
