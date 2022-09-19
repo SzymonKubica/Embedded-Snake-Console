@@ -3,7 +3,7 @@ use arduino_hal::port::mode::{Input, PullUp};
 use arduino_hal::hal::port::{PC0, PC1, PC2};
 use arduino_hal::port::{mode::Analog, Pin};
 
-use crate::mvc::Controller;
+use crate::traits::Controller;
 
 use crate::internal_representation::controller_input::ControllerInput;
 use crate::internal_representation::direction::Direction;
@@ -45,7 +45,7 @@ impl Controller for AnalogStick {
      * the stick has been fully displaced up, whereas a value of 1024 would indicate
      * that it was fully moved down. The threshold when we detect a choice of
      * direction is a bit lower to account for the inaccuracies of the measurement
-     * At present the lower threshold is 200 whereas the upper one is 800.
+     * At present the lower threshold is 150 whereas the upper one is 850.
      *
      */
     fn read_input(&mut self) -> ControllerInput {
