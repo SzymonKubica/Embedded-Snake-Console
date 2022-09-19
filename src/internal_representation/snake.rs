@@ -24,11 +24,11 @@ impl Snake {
 
     pub fn look_ahead(&mut self) -> Point {
         match self.direction {
-            Direction::Left        => self.head.translate_left(),
-            Direction::Right       => self.head.translate_right(),
             Direction::Up          => self.head.translate_up(),
             Direction::Down        => self.head.translate_down(),
-            Direction::NoDirection => self.head // Unreachable.
+            Direction::Left        => self.head.translate_left(),
+            Direction::Right       => self.head.translate_right(),
+            Direction::NoDirection => self.head // Shouldn't be reached.
         }
     }
     pub fn move_forward(&mut self) {
