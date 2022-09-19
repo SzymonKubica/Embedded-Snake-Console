@@ -38,7 +38,8 @@ impl Map {
     }
 
     pub fn get_previous(&mut self) {
-        self.current_map_index = (self.current_map_index + MAPS_NUMBER - 1) % MAPS_NUMBER;
+        self.current_map_index =
+            (self.current_map_index + MAPS_NUMBER - 1) % MAPS_NUMBER;
     }
 
     pub fn get_next(&mut self) {
@@ -47,10 +48,6 @@ impl Map {
 }
 
 fn count_obstacles(map: [[BoardCell; BOARD_SIZE]; BOARD_SIZE]) -> usize {
-    let mut count: usize = 0;
-    for row in map {
-        row.iter()
-            .filter(|cell| **cell == BoardCell::Obstacle)
-            .for_each(|_| count += 1); }
-    count
+    map.iter().map(|row|
+        row.iter().filter(|cell| **cell == BoardCell::Obstacle).count()).sum()
 }
