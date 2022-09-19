@@ -48,6 +48,10 @@ impl Map {
 }
 
 fn count_obstacles(map: [[BoardCell; BOARD_SIZE]; BOARD_SIZE]) -> usize {
-    map.iter().map(|row|
-        row.iter().filter(|cell| **cell == BoardCell::Obstacle).count()).sum()
+    let mut count: usize = 0;
+    for row in map {
+        row.iter()
+            .filter(|cell| **cell == BoardCell::Obstacle)
+            .for_each(|_| count += 1); }
+    count
 }
