@@ -12,7 +12,7 @@ pub trait TimedRunnable : Runnable {
     fn run_for(&mut self, miliseconds: u32) -> ();
 }
 
-pub trait Model: TimedRunnable {
+pub trait ControllerListener: TimedRunnable {
     fn on_input(&mut self, input: ControllerInput) -> ();
 }
 
